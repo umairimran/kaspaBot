@@ -1,0 +1,98 @@
+Kaspa 101 - Part 1
+The block-DAG paradigm
+Posted on April 23, 2022
+This is a blog series explaining the fundamentals of Kaspa in simple and short language. I will assume the least possible prior knowledge, although some fundamentals in blockchain theory, specifically bitcoin, may benefit the reader.
+
+What is kaspa?
+Kaspa is a pure PoW engine which generalizes and scales bitcoin’s blockchain paradigm.
+
+Block-DAG vs. Blockchain
+The first change Kaspa introduces is the block-DAG mining paradigm. In bitcoin, miners first select the longest (or to be precise, the heaviest) chain and mine over its top-most block, aka the selected tip. Thus essentially miners do not share the full information they have – they do not share the knowledge of other non-selected chains they know of and chose not to mine over.
+
+In contrast, in the block-DAG paradigm, all information is revealed. We call it “the revelation principle”. The miner references all tips he knows of. Following, any protocol can be ran to make choices over this knowledge, including for instance the longest chain rule, however the maximization of shared knowledge opens many more opportunities.
+
+In essence, by each miner mining over all known blocks, a maximal amount of time relations (e.g. this block was mined “after” this block) is revealed and shared.
+
+Having each miner mine over many block tips (referencing all their hashes in its header), creates a directed graph of blocks with a link pointing from a block to each of the referenced blocks. The cryptographic irreversibility of the PoW function implies that no cycles can be created in this directed graph, making it a Directed Acyclic Graph.
+
+Some block-DAG terminology
+The set of blocks referenced by block B
+ are parents(B)
+. The set past(B)
+ is the set of blocks reachable from block B
+ through a chain of parent links (coined “past” because we know they existed before B
+). Note that past(B)
+ is never empty since it always contains genesis
+ which is the initial block defining the begining of the DAG. Likewise, future(B)
+ is the set of blocks which B
+ is reachable from. The set anticone(B)
+ is the set of blocks “parallel” to B
+, i.e., not in its past nor in its future. Essentially no time causality information is known between B
+ and blocks in anticone(B)
+. We call it “anticone” because both past and future can be seen as “cones” from B
+’s perspective.
+
+Ordering a block-DAG
+Before delving into the specifics of the GHOSTDAG protocol, which is the ordering protocol used by Kaspa, I’ll describe a general structure for ordering a block-DAG based on any parent selection rule.
+
+Assume a parent selection function f
+ mapping from each block B
+ to one of its parents P.
+ The sub-DAG containing only these special “selected” links (from every block B
+ to its selected parent) is in fact a tree. Let’s name a special non-existing block called “virtual”, which always points at all DAG tips/leaves. This virtual block represents the next mined block in the eyes of the local node.
+
+The mapping function f
+ can be applied on virtual
+ in order to select a specific DAG tip. We can then walk down starting from this tip through the “selected parent” links until reaching genesis. So a mapping f
+ can be translated to selecting a chain C
+ of blocks starting from virtual
+ and ending at genesis
+.
+
+This chain can be used to deterministically order the complete DAG structure.
+
+To accomplish this task we need one more definition. Let’s define the mergeset of B
+, mergeset(B)
+, to be the set of blocks that B
+ merged into the DAG. Formally this is the set of blocks which are in past(B)
+ but not in the past of B
+’s selected parent as chosen by the mapping function f
+. It’s called a merge-set because it’s the set of blocks that B
+ merged into the DAG from his perspective relative to its selected parent perspective.
+
+Given a chain C
+ and the definition of a mergeset, we are ready to describe a complete ordering rule based on f
+. The idea is to start from genesis
+ and walk up this chain, where at each chain-block we add his merge-set to the ordering. Intuitively, the chain here acts as a spine of the DAG, where the merge-sets are layers added one after the other. To see this more clearly note that from the definition of a mergeset and its relation to the proceeding chain block, it follows that all mergesets are disjoint sets and that their union covers the entire DAG.
+
+The simple pseudo-code below describes exactly this and is brought here for reference.
+
+function Order-DAG(G
+):
+
+let C
+ be the chain obtained by applying f
+ on DAG G
+ as described
+ordering = []
+for block B
+ in C
+ walking up from genesis
+ up to virtual
+ordering.Add(mergeset(B)
+)
+return ordering
+Chain security implies robust DAG ordering
+Understanding the relation between a chain and DAG ordering helps reasoning about the relation between a chain selection protocol and the security properties required from a secure ordering protocol.
+
+For a block-DAG representing a transaction ledger, we’d like that the ordering of the DAG is “robust” in the sense that only a small set of blocks near the tips of the DAG might change their order. In other words, we want the ordering to “stabilize” for any block mined “enough” time ago, where enough depends on the amount of certainty required.
+
+Because ordering is governed by a chain, it follows that if the chain is “robust”, i.e., does not change up to a suffix, then the DAG ordered by it is robust as well. Thus all we need now is a secure way to find a robust chain – a secure parent mapping function f
+.
+
+Next post in this series
+In the following post I’ll write about the special parent selection function f=
+ GHOSTDAG and will give more rigorous definitions for related terms used in Kaspa such as “blue score”, “blue work”, etc.
+
+I chose to explain about the chain structure first, because I think it’s crucial to understand this decomposition for getting a clear understanding of the Kaspa system. Regardless of the f
+ used, this chain structure is used by our UTXO algebra infrastructure and also plays a role in the framework we implemented for supporting DAG reachability queries.
