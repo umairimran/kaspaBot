@@ -14,7 +14,7 @@ def main():
         console.print()
     except Exception as e:
         console.print(f"[bold red]❌ Error loading flexible index: {e}[/bold red]")
-        console.print("Please run: python -m app.flexible_embedder_simple")
+        console.print("Please run: python core.py (to create embeddings)")
         return
     
     while True:

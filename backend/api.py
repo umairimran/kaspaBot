@@ -28,7 +28,7 @@ try:
     print(f"📊 Sources: {metadata['source'].value_counts().to_dict()}")
 except Exception as e:
     print(f"❌ Error loading flexible index: {e}")
-    print("Please run: python -m app.flexible_embedder_simple")
+    print("Please run: python core.py (to create embeddings)")
     index, metadata = None, None
 
 class QueryRequest(BaseModel):
@@ -47,11 +47,20 @@ def ask_question(request: QueryRequest):
         messages = build_flexible_prompt(request.question, results)
         answer = generate_answer(messages)
 
-        # Frontend now expects no sources/links in the answer text.
-        # We return an empty citations list to keep schema compatibility.
+        # Create source citations from the retrieved results
+        citations = []
+        for result in results:
+            citation = {
+                "source": result["source"],
+                "section": result.get("section", ""),
+                "filename": result.get("filename", ""),
+                "url": result.get("url", "")
+            }
+            citations.append(citation)
+
         return {
             "answer": answer,
-            "citations": []
+            "citations": citations
         }
     except Exception as e:
         return {

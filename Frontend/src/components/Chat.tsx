@@ -105,6 +105,28 @@ export default function Chat() {
               }`}
             >
               <div className="whitespace-pre-wrap leading-relaxed">{m.content}</div>
+              
+              {/* Display sources for assistant messages */}
+              {m.role === 'assistant' && m.citations && m.citations.length > 0 && (
+                <div className="mt-3 pt-2 border-t border-kaspa/20">
+                  <div className="text-xs text-slate-400 mb-1">Sources:</div>
+                  <div className="space-y-1">
+                    {m.citations.slice(0, 3).map((citation, idx) => (
+                      <div key={idx} className="text-xs text-slate-400">
+                        <span className="text-kaspa font-medium">
+                          {citation.source.toUpperCase()}
+                        </span>
+                        {citation.filename && (
+                          <span>: {citation.filename}</span>
+                        )}
+                        {citation.section && (
+                          <span> ({citation.section})</span>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         ))}

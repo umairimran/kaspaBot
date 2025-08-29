@@ -1,0 +1,45 @@
+In the previous discussion, I explained Bitcoin forks and 51% attacks, introducing the throughput-security trade-off that Bitcoin faces. Increasing the block size can lead to more forks and reduce the reorganization attack threshold to below 50% of the hashing power. In this post, I will explain how we can circumvent this problem and increase throughput without compromising security.
+
+**Introducing BlockDAGs**
+
+The issue with forks is that their work could be used to secure the main chain, but instead, it is wasted and ignored. To solve this problem, we need to harness their work to help us face attackers. Directed Acyclic Graphs (DAGs) come to the rescue. A DAG is a graph where every node can point to any number of existing nodes. We can intuitively see how DAGs can help us solve the fork problem: if the main chain could point to the forked blocks, their work would not be discarded when facing an attacker.
+
+In the blockDAG paradigm, the mining protocol differs slightly. Every miner must build blocks that extend all of the tips they are aware of (the DAG tips are the blocks that do not have any children). 
+
+One of the first questions that arise when dealing with blockDAGs is: How should the blocks and transactions be ordered? Because the DAG can have many parallel blocks that may include conflicting transactions, we need to find a deterministic way to order them. The ordering mechanism should take attackers into account, ensuring that if there are any transaction conflicts, the attacker blocks will come last.
+
+To achieve this, we can adapt the longest chain rule to a DAG. The most naive solution is to give precedence to blocks with a larger past size, as long as the order remains topological (parents come before their children). The past size of a block is the number of blocks in its past, meaning the number of blocks it points to directly or indirectly.
+
+Now we will start ordering the DAG recursively, from its tips to the root. For example, if we calculate the past size of each block, we find:
+
+- A’s past size is 0 because it points to nothing.
+- B, C, and D each have a past size of 1 because they point only to A.
+- E directly points to C and D and indirectly to A, so its past size is 3.
+
+We will order the blocks as follows: H will come before G because H has a greater past size. F comes before E due to F’s past size. B, C, and D have identical past sizes, so we can order them by their hash. Assuming their hash order is B > C > D, A comes first. Thus, our block order is A, B, C, D, F, E, H, G. The transaction order is defined by the order of blocks, meaning if two parallel blocks, like E and F, include conflicting transactions, we can ignore the transaction from block E because F precedes it.
+
+If we adapt the attack from previous discussions to a blockDAG paradigm, we see that the attacker tip B has a smaller past size (7) than the honest DAG tip A (9), so its conflicting transaction will not be recorded in the ledger.
+
+However, what if the attacker changes its behavior and points to blocks of the honest DAG? If the attacker’s chain is built such that every block in its chain points to a block in the honest DAG, this will increase its past size to the maximum while still keeping its own block as the parent with the largest past size. When we apply the same recursive ordering, we will see that the attacker’s blocks will always precede the honest blocks, allowing the double spend to succeed, even though the attacker created fewer blocks than the honest network.
+
+To prevent attackers from using the work of honest miners, we need a way to differentiate between attacker blocks and honest blocks. The PHANTOM paper describes such a mechanism, which I will outline in the rest of this article.
+
+To define attacking blocks, we must understand what an honest blockDAG looks like. We will define a few terms to help clarify blockDAGs. From a single block’s perspective, the DAG can be divided into three subsets: the block’s past, future, and anticone. The block’s past consists of every block it points to, or that its parents point to, and so on. Its future consists of blocks that contain the block in their past. Blocks that are neither part of the block's past nor its future—those that do not belong to the two former categories—define the anticone. In an honest blockDAG, the anticone of a block consists of blocks that were not known to the miner at the time of the block's creation or that were created afterward by miners who were still unaware of the new block.
+
+We can intuitively say that the size of a block’s anticone depends on two factors: the block creation rate (denoted as λ) and the network delay (denoted as D). If we increase either factor, more miners will mine blocks before they have a chance to receive all of their peer blocks, resulting in wider DAGs. By making empirical measurements to determine the maximum delay in the network, we can calculate the maximum anticone we expect to see in an honest network.
+
+For example, if we define the block creation rate to be 1 block per second and the maximum observed network delay is 4 seconds, we can expect a maximum anticone size of 8 blocks. When a miner mines a block, we expect its anticone to include a maximum of 4 blocks, as this is the number of blocks that can be created during the 4 seconds of delay (any blocks created more than 4 seconds ago should already be known by the miner and pointed to, directly or indirectly, by its mined block). Another 4 seconds may pass until the block is propagated to the entire network. During that time, miners who are not yet aware of this block could mine another 4 blocks. Thus, we derive that the maximum anticone size of the block would be 4 + 4 = 8. As a general rule, we can say that the maximum anticone size of a block in an honest network (denoted as k) is 2Dλ.
+
+When deciding if a block is part of the honest DAG, we need to ask ourselves, “If we add this block to the honest DAG, will any block have an anticone size greater than k?” If the answer is no, we can add the block to the honest DAG. If the answer is yes, it means this kind of DAG cannot be created as part of an honest network, so it cannot be added to the current honest DAG, and we reject it unless we find another alternative honest DAG that can include it. The PHANTOM rule can be summarized as “find the biggest sub-DAG where no block has an anticone greater than k.” This is a generalization of the Bitcoin longest chain rule—Bitcoin can be described as PHANTOM with k=0.
+
+Let’s examine the same DAG with the PHANTOM rule, with k=3. Including all of the attacker blocks will cause every other block in the DAG to have an anticone of 6 blocks, meaning it cannot be part of an honest DAG. The attacker blocks (except the tip) will be excluded, they will not be rewarded, and the double spend attempt will fail.
+
+**Choosing the Right k**
+
+Choosing the wrong k can have significant consequences. If k is too low, many blocks from honest miners will be unjustly considered dishonest, meaning their work won’t count, and the network will be more vulnerable to attacks. Conversely, if k is too high, we may mistakenly consider attacker blocks as honest. However, an attacker cannot create more than k blocks that will be considered honest, so to avoid such problems, we can simply wait k blocks before considering a transaction confirmed. For example, with k=3, if Alice is pending a transaction in block B, she can wait for block E before transferring her purchased goods. She knows that if the attacker submits blocks F and G with a conflicting transaction, they will have a 4-block anticone, and PHANTOM will categorize those blocks as malicious. If she does not wait for block E, there is no guarantee that the attack won’t succeed, as PHANTOM cannot work on resolutions lower than k.
+
+In conclusion, it is better to choose a k that is too high than one that is too low. The former may harm user experience by requiring longer confirmation times, while the latter decreases the reorganization attack threshold to below 50%.
+
+**PHANTOM for Practical Use**
+
+PHANTOM attempts to find the largest sub-DAG with an anticone smaller than k+1. Unfortunately, this is a costly operation when dealing with large DAGs. This is why the GHOSTDAG algorithm was invented as a greedy and more efficient variant of PHANTOM. This will not be covered in this article, but anyone interested in further reading can refer to the PHANTOM paper.

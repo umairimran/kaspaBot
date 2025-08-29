@@ -157,12 +157,12 @@ def create_comprehensive_embeddings():
     
     # 1. Load existing kasparchive data
     print("📖 Loading existing kasparchive data...")
-    kasparchive_chunks = load_and_chunk_kasparchive("../data/kasparchive.json")
+    kasparchive_chunks = load_and_chunk_kasparchive("data/kasparchive.json")
     all_chunks.extend(kasparchive_chunks)
     print(f"✅ Loaded {len(kasparchive_chunks)} chunks from kasparchive")
     
     # 2. Load and parse Kaspa X content
-    kaspa_x_path = Path("../data/kaspaXcontent.txt")
+    kaspa_x_path = Path("/data/kaspaXcontent.txt")
     if kaspa_x_path.exists():
         print("📖 Loading Kaspa X content...")
         with open(kaspa_x_path, 'r', encoding='utf-8') as f:
@@ -173,7 +173,7 @@ def create_comprehensive_embeddings():
         print(f"✅ Loaded {len(kaspa_x_chunks)} chunks from Kaspa X content")
     
     # 3. Load whitepapers (text files and PDFs)
-    whitepaper_dir = Path("../data/whitepapers")
+    whitepaper_dir = Path("data/whitepapers")
     if whitepaper_dir.exists():
         print("📖 Loading whitepapers...")
         
@@ -196,16 +196,34 @@ def create_comprehensive_embeddings():
                 print(f"❌ Failed to process {pdf_file.name}: {e}")
                 continue
     
-    # 4. Load generic content
-    generic_dir = Path("../data/generic")
+    # 4. Load generic content (prioritize cleaned versions)
+    generic_dir = Path("/data/generic")
+    generic_cleaned_dir = Path("/data/generic_cleaned")
+    
     if generic_dir.exists():
         print("📖 Loading generic content...")
-        for text_file in generic_dir.glob("*.txt"):
-            with open(text_file, 'r', encoding='utf-8') as f:
-                content = f.read()
-            chunks = parse_generic_text(content, text_file.stem, "generic")
-            all_chunks.extend(chunks)
-            print(f"✅ Loaded {len(chunks)} chunks from {text_file.name}")
+        
+        # Check for cleaned versions first
+        if generic_cleaned_dir.exists():
+            print("🧹 Using cleaned versions from generic_cleaned/")
+            for text_file in generic_cleaned_dir.glob("*.txt"):
+                with open(text_file, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                chunks = parse_generic_text(content, text_file.stem, "generic")
+                all_chunks.extend(chunks)
+                print(f"✅ Loaded {len(chunks)} chunks from cleaned {text_file.name}")
+        else:
+            print("📄 Using original versions from generic/ (run clean_generic_texts.py for better results)")
+            # Only load .txt files directly in generic folder, exclude subdirectories
+            for text_file in generic_dir.glob("*.txt"):
+                if text_file.parent.name == "generic":  # Exclude files in subdirectories like kips/
+                    with open(text_file, 'r', encoding='utf-8') as f:
+                        content = f.read()
+                    chunks = parse_generic_text(content, text_file.stem, "generic")
+                    all_chunks.extend(chunks)
+                    print(f"✅ Loaded {len(chunks)} chunks from {text_file.name}")
+                else:
+                    print(f"⏭️  Skipping {text_file.name} (in subfolder - run clean_generic_texts.py to include)")
     
     if not all_chunks:
         print("❌ No content found to embed!")
@@ -215,7 +233,7 @@ def create_comprehensive_embeddings():
     df = pd.DataFrame(all_chunks)
     print(f"🔍 Creating embeddings for {len(df)} chunks...")
     
-    index_path = "../embeddings/vector_index_flexible.faiss"
+    index_path = "embeddings/vector_index_flexible.faiss"
     create_embeddings(df, index_path)
     
     print(f"✅ Embeddings created successfully!")
@@ -343,9 +361,23 @@ def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, st
     
     context = "\n".join(context_parts)
     
-    system_prompt = """You are KaspaBot — a technical expert providing precise, mechanism-focused answers about Kaspa protocols.
+    system_prompt = """You are KaspaBot — a specialized technical expert exclusively focused on Kaspa cryptocurrency and blockchain protocols.
 
-CRITICAL REQUIREMENTS:
+SCOPE & CONTEXT INTELLIGENCE:
+- You ONLY have knowledge about Kaspa blockchain, cryptocurrency, protocols, and ecosystem
+- For ANY question, first determine if it relates to Kaspa (even if not explicitly mentioned) but don't write something like I am assuming your question is on kaspa. Just start the answer.
+- Common implicit Kaspa contexts: "team", "mining", "premine", "tokens", "consensus", "DAG", "blockchain", "cryptocurrency"
+- If a question seems unrelated to Kaspa, respond: "I specialize exclusively in Kaspa cryptocurrency and blockchain technology. Could you clarify how your question relates to Kaspa, or ask me something about Kaspa protocols, mining, development, or ecosystem?"
+
+QUESTION INTERPRETATION:
+- Examples:
+  * "Did the team premine?" → Interpret as "Did the Kaspa team premine?"
+  * "What's the consensus algorithm?" → Interpret as "What's Kaspa's consensus algorithm?"
+  * "How does mining work?" → Interpret as "How does Kaspa mining work?"
+- For unclear questions, provide both clarification and a Kaspa-focused answer
+- Example: "I'll answer assuming you're asking about Kaspa. [Answer]. If you meant something else, please specify."
+
+TECHNICAL PRECISION REQUIREMENTS:
 1) EXACT PROCEDURE NAMES: Never use generic terms. Always name specific algorithms and procedures.
    - Use "K-Colouring procedure" and "UMC-Voting procedure", not "Algorithm 3/4"
    - State what each procedure returns: "K-Colouring returns a valid k-colouring of blocks"
@@ -376,11 +408,15 @@ CRITICAL REQUIREMENTS:
    - State what it does and how it works
    - Avoid unnecessary background or context unless directly relevant
 
-Never include sources, citations, or URLs. Answer with technical precision using exact terminology."""
+7) INCLUDE SOURCES: Always include a "Sources:" section at the end listing the relevant sources used.
+   - Format: "Sources: [SOURCE_TYPE:filename/section]"
+   - Example: "Sources: [WHITEPAPER:KNIGHT_Protocol], [GENERIC:Kaspa_101]"
+
+Answer with technical precision using exact terminology, followed by source attribution."""
 
     return [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Technical Context:\n{context}\n\nQuestion: {query}\n\nProvide a precise, mechanism-focused answer using exact procedure names and terminology from the context."}
+        {"role": "user", "content": f"Technical Context:\n{context}\n\nQuestion: {query}\n\nProvide a precise, mechanism-focused answer about Kaspa using exact procedure names and terminology from the context. If the question doesn't explicitly mention Kaspa but seems related to cryptocurrency/blockchain, assume it's about Kaspa and clarify your interpretation."}
     ]
 
 

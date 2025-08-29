@@ -27,11 +27,6 @@ The blockchain is called a chain and not a tree for a reason: the vast majority 
 
 The fork rate is affected by two variables: the block creation rate and the network delay.
 
-Get Ori Newman’s stories in your inbox
-Join Medium for free to get updates from this writer.
-
-Enter your email
-Subscribe
 The network delay is the time it takes for a block to be known to all of the miners. Bitcoin’s network delay is about 1 second, and a new block is created on average every 600 seconds (10 minutes). Because the average block creation time is 600 times bigger than the network delay, it’s highly unlikely that a block will be mined while another block is still being propagated.
 
 

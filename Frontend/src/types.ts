@@ -1,6 +1,8 @@
 export interface Citation {
+  source: string
+  section: string
+  filename: string
   url: string
-  label: string
 }
 
 export interface AskResponse {
