@@ -1,0 +1,182 @@
+⚡️A new website dedicated to address the FUD/Myths on Kaspa $KAS !
+
+Instead of explaining how some claims are wrong every single time, you can now just reply with the link or screenshot from the website.
+
+Check it out here: https://kasparchive.com
+
+#Kaspa
+
+A common FUD for $KAS is that there are missing transactions for the first 6 months of the ledger. 
+
+Here are the facts. 👇
+
+100% of all the data has been recovered of anything after 2-10-2022 (Kaspa launched on November 2021)
+
+75% of all the data has been recovered of anything in between the launch and 2-10-2022.
+
+Genesis block- https://explorer.kaspa.org/blocks/caeb97960a160c211a6b2196bd78399fd4c4cc5b509f55c12c8a7d815f7536ea
+
+Earliest mined block- https://explorer.kaspa.org/blocks/d884013dc7b892b793f1f261432fa7de504be574d4f327b1a7a9379a630b96b3
+
+While 25% remains missing. There is sufficient data to make this a total non-issue. Move on Fudders.
+
+Question about $KAS missing some transactions from its early days.
+
+It looks like 75% or so was recovered.
+
+But we're still missing 25%? What happened to these?
+
+Isn't this a cause for concern?
+
+Why is it a cause for concern? What information do you reckon could be "hidden" in these few random pieces of old transaction data that went lost? Maybe first help me understand what you are actually concerned about, and then I could help alleviate these concerns?
+
+Playing Devils Advocate : 
+
+The missing transactions account for roughly 5% of the total diluted supply. 1.4 Billion Kaspa. The biggest concern is that a single entity was able to essentially “pre mine” and then split this into multiple wallets without being seen
+
+(5% sounds like an overestimation, but let's assume it's accurate)
+
+Say that you had the transaction data, how could you use it to prove/disprove that a single entity mined the entire supply? Let me remind you that a miner doesn't have to mine everything to a single address and then split it on-chain. They can mine to many different addresses to begin with.
+
+But it goes a bit depper: the missing block data is not contiguous. It might have been a year ago, but due to the efforts of community members to collect and archive old datadirs, the missing data is sporadic and randomly scattered among the blocks produced during the first few weeks. In particular, no one but pure chance had any control over what blocks were recovered and what were lost to time. So even if an alleged entity allegedly "premined" and was allegedly stupid enough to mine all their coin into a single address, you would see that address in all the coinbase transactions of the blocks that were recovered.
+
+So no, I don't think it is a valid concern.
+
+You can’t scale layer 1 infinitely without compromising either decentralization or security. Kaspa’s architecture increases bandwidth and orphan risk requirements for full nodes, meaning fewer people can realistically validate the network independently. That’s centralization.
+
+Bitcoin’s approach is layered, like the internet. TCP/IP didn’t get upgraded to carry video streaming; apps like Netflix run on top. Same with Lightning: Layer 2 enables massive throughput without sacrificing Bitcoin’s core properties
+
+Kaspa’s fast emission schedule means its block rewards drop off steeply by 2028. Unless fees rise substantially (unlikely with fast blocks and cheap txs), the long-term assumptions of this model break down for Kaspa, because the attacker’s cost to launch a 51% attack drops over time... compared to BTC.
+
+⚙️ Empirical & Conceptual Comparison of Node Requirements (as of 2025)
+
+Network Node Type Disk Space RAM Needed Bandwidth Req Accessibility for Avg User Notes     Bitcoin Full Node (Pruned) ~10–20 GB ~1–2 GB Low ✅ Very high Designed to run on Raspberry Pi   Kaspa Full Node (Archival) ~40–100 GB+ 8–16 GB+ Medium–High ❌ Decreasing BlockDAG + high freq blocks   Kaspa Full Node (Pruned) ~10–25 GB 4–8 GB+ Medium ⚠️ Mixed Still higher CPU/bandwidth than BTC   Ethereum Archival Node 2–5 TB+ 32 GB+ High ❌ Very low Only a few orgs run archival nodes   Ethereum Full Node (Pruned) ~500 GB+ 8–16 GB High ⚠️ Limited Still demanding vs BTC/KAS
+🧠 Analysis:
+Kaspa pruning does reduce disk space, which is good. But pruning doesn’t reduce validation load, and Kaspa’s high block rate + DAG logic means higher CPU and bandwidth needs remain.
+So while you can prune Kaspa and lower disk use, it’s still not as accessible or lightweight as Bitcoin—especially for users on older hardware or low-bandwidth networks.
+
+1. Debunked - https://en.bitcoin.it/wiki/Value_overflow_incident
+
+2. I'm not sure why/how $KAS can't scale to the whole globe? It has significantly better tech to scale than $BTC can on layer 1...?
+
+3. There's no need for full archival nodes for $KAS. BlockDAGs are different than Blockchains. Pruning nodes do just fine and is all that's necessary. Satoshi even talks about pruning nodes on page 7 of HIS Bitcoin: Peer-to-Peer Electronic Cash System white paper. 
+
+I welcome arguments to dispute my rebuttal.
+
+Deepseek probably doesn't understand Kaspa's pruning and thinks that archival nodes are required for full chain validation (like on Bitcoin or any other chain with light nodes). But that's not the case, Kaspa uses a NiPoPoW to prove chain weight with only a log fraction of the headers, a DAG adaptation (by 
+@OriNewman
+ et al) of the MLS protocol:
+https://eprint.iacr.org/2021/623.pdf
+
+
+Every time I see this FUD I ask the same question: what malfeasance could be hidden in the "missing" txn data that could not be hidden with access to that data?  
+
+Here are examples of things that could not be hidden:
+ - additional supply (verifying the supply only requires access to the UTXO set, which all nodes store) 
+ - coin distribution  (given two UTXOs with different addresses it is impossible to tell whether they belong to the same holder, mining into many independent addresses is a trivial way to hide coin distribution, and is probably what's happening in all existing coins, which is why I never liked the "top holders" metric, as it is very gameable) 
+ - difficulty growth rate (could be read off posterity headers, which are stored by all network nodes indefinitely), i.e. it is impossible to lie about how much work was put into the chain, you can check the early posterity header to see a constant exponential growth in hashrate since day 1
+
+Before asking "what are they hiding?" ask "what can they even hide?" In this case, the answer is "nothing". There is nothing of note you could infer from the "missing" data.
+
+Before making insinuations of a scam, ask yourself, "what scam could possibly be hiding there?" In this case, there is non.
+
+Before accusing "the devs" of being "vague", look up what they actually said. You would find:
+1. A long sequence of public post,
+2. A notebook that instructs anyone interested on how to verify the state validity themselves, with detailed step-by-step instructions and code excerpts,
+3. A 45 minute workshop lecture about how pruning does not sacrifice security.
+
+Just sayin'
+
+A common FUD for $KAS is that there are missing transactions for the first 6 months of the ledger. 
+
+Here are the facts. 👇
+
+100% of all the data has been recovered of anything after 2-10-2022 (Kaspa launched on November 2021)
+
+75% of all the data has been recovered of anything in between the launch and 2-10-2022.
+
+Genesis block- https://explorer.kaspa.org/blocks/caeb97960a160c211a6b2196bd78399fd4c4cc5b509f55c12c8a7d815f7536ea
+
+Earliest mined block- https://explorer.kaspa.org/blocks/d884013dc7b892b793f1f261432fa7de504be574d4f327b1a7a9379a630b96b3
+
+While 25% remains missing. There is sufficient data to make this a total non-issue. Move on Fudders.
+
+
+
+@michaelsuttonil
+Kaspa is computer science research at its finest, applied to solve a real-world problem: permissionless consensus at internet speed
+
+Biggest misconception? That you can hold Bitcoin and Kaspa without picking a side. If you get Kaspa’s low fees and fast transactions, you see it solves Bitcoin’s flaws, high costs and slow network. Holding both shows you don’t fully grasp Kaspa’s edge. Biggest FUD? That Kaspa’s just another altcoin. It’s not; it’s built to outdo Bitcoin’s limits and deliver real usability, not just hype.
+Kaspa is not better or worse than bitcoin
+They are like a hammer and a wrench, both have different purpose
+ASIC mining centralization
+- Price crash or bubble fears
+- Inability to compete with Bitcoin/Ethereum
+- Lack of major exchange listings
+- Technical failure or security risks
+- Pruning implementation concerns
+But they can never really argue their points... they just toss out these bullet points and slap us with the "shitcoiner" label.
+
+
+@KaspaAce
+You may have heard some Kaspa ( $kas ) FUD. If you’ve heard “it’s centralized,” “it’s bots,” “it’s just faster Bitcoin,” or “the website is a joke,” this is for you. Let’s fact-check, point by point, and explain why Kaspa made certain design choices.  All these points were generically brought up in the linked Spaces session (https://x.com/dotkrueger/status/1956843811679989918)👇
+
+1) “Kaspa has armies of paid shills”
+ False. Kaspa launched fairly: no premine, no presale, no VC allocation, no founders’ tax. There’s no corporate treasury to bankroll “shills.” What you’re seeing is a grassroots PoW community—very loud, very nerdy, and very motivated—because they believe the tech matters. Strong advocacy ≠ payroll.
+
+2) “The founder is Satoshi”
+ Myth. Kaspa’s origin traces to academic work by researchers like Yonatan Sompolinsky (Ghost/GHOSTDAG research since 2013). Nobody credible in the project claims “Yonatan = Satoshi.” That rumor is internet telephone used to smear the project instead of engaging with the tech. Sure, individuals joke about the possibility of it, but that doesn't mean the majority believe it.
+
+3) “They just sped up block time; now it needs data centers; it’s not decentralized”
+ Technically wrong. If you only speed up Bitcoin’s block interval, you would centralize. Kaspa doesn’t do that. It’s a BlockDAG with GHOSTDAG consensus—multiple blocks can be created concurrently and still be ordered consistently. That’s the breakthrough: throughput without sacrificing decentralization.
+• Not a datacenter coin: full nodes run on commodity hardware; the design targets normal bandwidth and latency assumptions across the open internet.
+• Decentralization is a first-order goal: PoW + fair launch + open participation. Speed is the outcome of the DAG design, not a shortcut that trades off decentralization.
+
+4) “The website looks amateurish—this must be a scam”
+ Category error. Polish isn’t proof. Also: the site is community-maintained by design. There’s no “official corporate site” because Kaspa has no corporate issuer. An “official” site implies a controlling entity; Kaspa avoids that central point of failure.
+• In decentralized projects, the code, consensus, and network are the products—not a glossy homepage.
+• A community site isn’t a bug; it’s a signal: no company, no marketing department, no HQ—just open-source contributors.
+
+5) “No smart contracts = useless; just a faster PoW chain”
+ Misleading. Kaspa’s base layer deliberately prioritizes sound money properties: PoW security, high throughput, fast confirmation, simple and verifiable rules. That’s a design philosophy closer to Bitcoin than to Ethereum.
+• Smart-contract functionality can live on Layer 2 or evolve incrementally without bloating L1.
+• The innovation here isn’t “faster blocks,” it’s the BlockDAG architecture that finally scales PoW without the typical orphan/centralization spiral.
+
+6) “Usage is fake; it’s all bots”
+ Unevidenced claim. If someone says “it spiked from 40k to 1M and back—it’s bots,” ask for methodology: data source, bot-detection criteria, time windows, and controls. Hand-wavy charts with no context prove nothing.
+Organic signals matter more: growing miners, nodes, wallets, dev activity, infra (explorers, pools, tooling). Bots don’t maintain open-source repos or volunteer to run miners.
+
+7) “There’s no stablecoin, no ecosystem—chain does nothing”
+ Short-term lens. Bitcoin “did nothing” for years: no stablecoins, no DeFi, no NFTs—just money. Kaspa is executing the same base-layer-first approach: make money fast, final, and decentralized; then let layers and use-cases accrete where it makes sense. That’s a durable strategy, not a deficiency.
+
+8) “Down vs BTC last year—garbage investment”
+ Cherry-picking. Any emerging asset will have violent periods up and down. Using a single window to define a thesis is punditry, not analysis. Zoom out: Kaspa grew from a fair-launch nothingburger to a top PoW network—without VC airdrops or corporate market makers. Volatility ≠ fraud. It’s the cost of discovery.
+
+9) “It’ll pump on listings then die like the rest”
+ Speculation as fact. Many said the same thing about Bitcoin, Litecoin, and Monero in their adolescence. Kaspa’s edge isn’t “marketing” or “hype,” it’s:
+• PoW + Fair Launch (no insiders)
+• BlockDAG (GHOSTDAG) for parallel blocks & high throughput
+• Simple L1, room for L2 (keeps the monetary base robust)
+• Community-run infra + open code
+That’s a long-term survivability profile, not a “pump-and-dump” blueprint.
+
+10) “It’s immoral garbage for low-IQ retail”
+ Not an argument. When critiques degrade into IQ insults and moral panic, you’re no longer discussing computer science or monetary policy—you’re just doing culture war. If Kaspa were technically weak, you could falsify it technically. Insults are a tell.
+
+Why Kaspa’s choices make sense (the “why,” not just the “what”)
+• Decentralization first: No corporate “official,” no VC cap table, no premine. That’s harder to organize—and that’s the point.
+• Security model: Proof-of-Work remains the simplest, most time-tested Sybil resistance. Kaspa doesn’t bolt on complexity to fake throughput; it rethinks block topology.
+• Throughput via topology: In a chain, faster blocks ⇒ more orphans ⇒ centralization pressure. In a DAG, concurrent blocks are expected; the protocol orders them afterward. That changes the curve: you can push throughput without herding miners into a few low-latency data centers.
+• Sane base layer: Keeping L1 lean (payments + simple scripts) preserves auditability and robustness. Complex programmability can sit on L2s or side systems that don’t compromise L1’s monetary assurances.
+• Community surface area: A community site and many independent builders means more eyes, more clients/tools, and fewer single points of narrative control. Less glossy; more antifragile.
+
+What the FUD gets consistently wrong
+1) It treats aesthetics (website polish) as evidence, while ignoring consensus design.
+2) It conflates speed with centralization, ignoring DAG-based concurrency.
+3) It equates minimal L1 with “no use,” forgetting Bitcoin’s own trajectory.
+4) It argues by vibes (bots, shills, IQ takes) instead of verifiable technical claims.
+5) It assumes a centralized issuer should exist—then declares Kaspa suspicious because there isn’t one. That’s backwards.
+
+#Kaspa $KAS #GhostDAG #ProofOfWork #BitcoinEvolution #Decentralization #crypto #Bitcoin
+
+

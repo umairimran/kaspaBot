@@ -133,6 +133,71 @@ def parse_kaspa_x_content(content: str) -> List[Dict[str, Any]]:
     return chunks
 
 
+def parse_twitter_content(content: str, filename: str) -> List[Dict[str, Any]]:
+    """Parse Twitter/X content into meaningful chunks."""
+    # Split content by major topics or discussion threads
+    sections = []
+    current_section = []
+    lines = content.strip().split('\n')
+    
+    for line in lines:
+        line = line.strip()
+        if not line:
+            if current_section:
+                sections.append('\n'.join(current_section))
+                current_section = []
+            continue
+        
+        # Check if this starts a new major topic/discussion
+        if (line.startswith('⚡️') or line.startswith('🧠') or line.startswith('⚙️') or 
+            line.startswith('A common FUD') or line.startswith('@') or
+            'Question about' in line or 'Playing Devils Advocate' in line):
+            # Save previous section
+            if current_section:
+                sections.append('\n'.join(current_section))
+                current_section = []
+        
+        current_section.append(line)
+    
+    # Add the last section
+    if current_section:
+        sections.append('\n'.join(current_section))
+    
+    chunks = []
+    for i, section in enumerate(sections):
+        if section.strip():
+            # Extract a meaningful title from the section
+            first_line = section.split('\n')[0][:100]
+            if '⚡️' in first_line:
+                title = "New Kaspa Website for FUD/Myths"
+            elif 'common FUD' in first_line:
+                title = "Missing Transactions FUD Response"
+            elif 'Question about' in first_line:
+                title = "Missing Transactions Discussion"
+            elif 'Playing Devils Advocate' in first_line:
+                title = "Premine Concerns Analysis"
+            elif 'can\'t scale layer 1' in first_line:
+                title = "Layer 1 Scaling Debate"
+            elif '⚙️' in first_line:
+                title = "Node Requirements Comparison"
+            elif '@' in first_line and 'KaspaAce' in first_line:
+                title = "Comprehensive FUD Fact-Check"
+            elif 'Kaspa is computer science' in first_line:
+                title = "Kaspa vs Bitcoin Philosophy"
+            else:
+                title = f"Discussion Point {i+1}"
+            
+            chunks.append({
+                "id": f"twitter_{filename}_{i}",
+                "content": section.strip(),
+                "source": "twitter_discussions",
+                "section": title,
+                "filename": filename
+            })
+    
+    return chunks
+
+
 def parse_generic_text(content: str, filename: str, source_type: str = "generic") -> List[Dict[str, Any]]:
     """Parse generic text content into chunks."""
     paragraphs = content.strip().split('\n\n')
@@ -157,12 +222,12 @@ def create_comprehensive_embeddings():
     
     # 1. Load existing kasparchive data
     print("📖 Loading existing kasparchive data...")
-    kasparchive_chunks = load_and_chunk_kasparchive("data/kasparchive.json")
+    kasparchive_chunks = load_and_chunk_kasparchive("../data/kasparchive.json")
     all_chunks.extend(kasparchive_chunks)
     print(f"✅ Loaded {len(kasparchive_chunks)} chunks from kasparchive")
     
     # 2. Load and parse Kaspa X content
-    kaspa_x_path = Path("/data/kaspaXcontent.txt")
+    kaspa_x_path = Path("../data/kaspaXcontent.txt")
     if kaspa_x_path.exists():
         print("📖 Loading Kaspa X content...")
         with open(kaspa_x_path, 'r', encoding='utf-8') as f:
@@ -173,7 +238,7 @@ def create_comprehensive_embeddings():
         print(f"✅ Loaded {len(kaspa_x_chunks)} chunks from Kaspa X content")
     
     # 3. Load whitepapers (text files and PDFs)
-    whitepaper_dir = Path("data/whitepapers")
+    whitepaper_dir = Path("../data/whitepapers")
     if whitepaper_dir.exists():
         print("📖 Loading whitepapers...")
         
@@ -197,8 +262,8 @@ def create_comprehensive_embeddings():
                 continue
     
     # 4. Load generic content (prioritize cleaned versions)
-    generic_dir = Path("/data/generic")
-    generic_cleaned_dir = Path("/data/generic_cleaned")
+    generic_dir = Path("../data/generic")
+    generic_cleaned_dir = Path("../data/generic_cleaned")
     
     if generic_dir.exists():
         print("📖 Loading generic content...")
@@ -209,9 +274,17 @@ def create_comprehensive_embeddings():
             for text_file in generic_cleaned_dir.glob("*.txt"):
                 with open(text_file, 'r', encoding='utf-8') as f:
                     content = f.read()
-                chunks = parse_generic_text(content, text_file.stem, "generic")
-                all_chunks.extend(chunks)
-                print(f"✅ Loaded {len(chunks)} chunks from cleaned {text_file.name}")
+                
+                # Special handling for Twitter content
+                if text_file.name == "x.txt":
+                    print("🐦 Processing Twitter/X content with special parser...")
+                    chunks = parse_twitter_content(content, text_file.stem)
+                    all_chunks.extend(chunks)
+                    print(f"✅ Loaded {len(chunks)} Twitter discussion chunks from {text_file.name}")
+                else:
+                    chunks = parse_generic_text(content, text_file.stem, "generic")
+                    all_chunks.extend(chunks)
+                    print(f"✅ Loaded {len(chunks)} chunks from cleaned {text_file.name}")
         else:
             print("📄 Using original versions from generic/ (run clean_generic_texts.py for better results)")
             # Only load .txt files directly in generic folder, exclude subdirectories
@@ -219,9 +292,17 @@ def create_comprehensive_embeddings():
                 if text_file.parent.name == "generic":  # Exclude files in subdirectories like kips/
                     with open(text_file, 'r', encoding='utf-8') as f:
                         content = f.read()
-                    chunks = parse_generic_text(content, text_file.stem, "generic")
-                    all_chunks.extend(chunks)
-                    print(f"✅ Loaded {len(chunks)} chunks from {text_file.name}")
+                    
+                    # Special handling for Twitter content
+                    if text_file.name == "x.txt":
+                        print("🐦 Processing Twitter/X content with special parser...")
+                        chunks = parse_twitter_content(content, text_file.stem)
+                        all_chunks.extend(chunks)
+                        print(f"✅ Loaded {len(chunks)} Twitter discussion chunks from {text_file.name}")
+                    else:
+                        chunks = parse_generic_text(content, text_file.stem, "generic")
+                        all_chunks.extend(chunks)
+                        print(f"✅ Loaded {len(chunks)} chunks from {text_file.name}")
                 else:
                     print(f"⏭️  Skipping {text_file.name} (in subfolder - run clean_generic_texts.py to include)")
     
@@ -233,7 +314,7 @@ def create_comprehensive_embeddings():
     df = pd.DataFrame(all_chunks)
     print(f"🔍 Creating embeddings for {len(df)} chunks...")
     
-    index_path = "embeddings/vector_index_flexible.faiss"
+    index_path = "../embeddings/vector_index_flexible.faiss"
     create_embeddings(df, index_path)
     
     print(f"✅ Embeddings created successfully!")

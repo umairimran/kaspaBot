@@ -80,12 +80,12 @@ def ask_question(request: QueryRequest):
     if not conversation_id:
         # TEMPORARY: Use static conversation ID for testing
         # TODO: Replace with actual Twitter API conversation ID when integrated
-        conversation_id = "temp123"
+        conversation_id = "temp1234"
         
     elif not conversation_exists(conversation_id):
         # Invalid conversation ID, use static one
         # TEMPORARY: Using static ID for testing
-        conversation_id = "temp123"
+        conversation_id = "temp1234"
     
     # Ensure conversation exists in database
     if not conversation_exists(conversation_id):
