@@ -171,14 +171,7 @@ jspm_packages/
 .vite/
 
 # Project-specific files
-# Embeddings and vector indices (large files)
-embeddings/
-*.faiss
-*.faiss.meta.json
 
-# Data files (potentially large)
-data/whitepapers/*.pdf
-data/*.json
 
 # Logs
 logs/

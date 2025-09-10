@@ -10,10 +10,11 @@ from db.conversation_manager import (
     get_conversation_context, conversation_exists, get_conversation_summary,
     list_user_conversations, delete_conversation, update_conversation_title
 )
+from twitter_bot_integration import bot_manager
 import os
 
 # Configuration - use environment variable to choose vector DB
-USE_QDRANT = os.getenv("USE_QDRANT", "true").lower() == "true"
+USE_QDRANT = os.getenv("USE_QDRANT", "true").lower() == "true"  # Default to Qdrant
 INDEX_PATH = "../embeddings/vector_index_flexible.faiss"
 
 app = FastAPI(title="Kaspa Flexible RAG Chatbot")
@@ -511,4 +512,65 @@ def view_all_database():
         return {
             "success": False,
             "message": f"Error viewing database: {str(e)}"
+        }
+
+# Twitter Bot API Endpoints
+
+@app.get("/twitter/status")
+def get_twitter_bot_status():
+    """Get Twitter bot status and statistics"""
+    return bot_manager.get_bot_status()
+
+@app.post("/twitter/start")
+def start_twitter_bot():
+    """Start the Twitter bot"""
+    return bot_manager.start_bot()
+
+@app.post("/twitter/stop")
+def stop_twitter_bot():
+    """Stop the Twitter bot"""
+    return bot_manager.stop_bot()
+
+@app.get("/twitter/queue")
+def get_twitter_queue_status():
+    """Get Twitter bot response queue status"""
+    return bot_manager.get_queue_status()
+
+@app.post("/twitter/queue/clear")
+def clear_twitter_queue():
+    """Clear all pending responses from Twitter bot queue"""
+    return bot_manager.clear_queue()
+
+@app.get("/twitter/interactions")
+def get_twitter_interactions(limit: int = 10):
+    """Get recent Twitter interactions"""
+    return bot_manager.get_recent_interactions(limit)
+
+@app.post("/twitter/interactions/clear")
+def clear_twitter_interactions():
+    """Clear all Twitter interaction history"""
+    return bot_manager.clear_interactions()
+
+@app.get("/Qdrant/health")
+def health_check():
+    """Health check endpoint that includes Twitter bot status"""
+    try:
+        from datetime import datetime
+        # Get basic status
+        vector_db_status = get_status()
+        
+        # Get Twitter bot status
+        twitter_status = bot_manager.get_bot_status()
+        
+        return {
+            "status": "healthy",
+            "timestamp": datetime.now().isoformat(),
+            "vector_db": vector_db_status,
+            "twitter_bot": twitter_status.get("status", {}) if twitter_status.get("success") else {"error": twitter_status.get("message")}
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy",
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e)
         }

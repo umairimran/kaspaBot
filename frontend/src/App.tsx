@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import Chat from './components/Chat'
+import TwitterBotManager from './components/TwitterBotManager'
 import kaspaLogo from './images/kaspa_logo.jpeg'
 import { ask } from './api'
 import type { Citation } from './types'
@@ -36,6 +37,7 @@ What would you like to know about Kaspa?`
   const [lastA, setLastA] = useState<string>()
   const [tweetStatus, setTweetStatus] = useState<string>()
   const [conversationId, setConversationId] = useState<string>()
+  const [activeTab, setActiveTab] = useState<'chat' | 'twitter'>('chat')
 
   const handleSend = async () => {
     if (!input.trim() || loading) return
@@ -128,8 +130,31 @@ What would you like to know about Kaspa?`
               </div>
             </div>
             
-            {/* Status Indicator */}
+            {/* Navigation Tabs */}
             <div className="flex items-center gap-3">
+              <div className="flex bg-slate-800/50 rounded-lg p-1">
+                <button
+                  onClick={() => setActiveTab('chat')}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'chat'
+                      ? 'bg-kaspa text-white'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  💬 Chat
+                </button>
+                <button
+                  onClick={() => setActiveTab('twitter')}
+                  className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                    activeTab === 'twitter'
+                      ? 'bg-kaspa text-white'
+                      : 'text-slate-300 hover:text-white'
+                  }`}
+                >
+                  🤖 Twitter Bot
+                </button>
+              </div>
+              
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
                 <span className="text-green-400 text-sm font-medium">Online</span>
@@ -163,18 +188,22 @@ What would you like to know about Kaspa?`
       <main className="flex-1">
         <div className="max-w-6xl mx-auto px-4 py-6">
           <div className="glass-card rounded-2xl p-6 shadow-2xl">
-            <Chat 
-              messages={messages}
-              input={input}
-              setInput={setInput}
-              onSend={handleSend}
-              loading={loading}
-              onKeyDown={handleKeyDown}
-              lastQ={lastQ}
-              lastA={lastA}
-              postToTwitter={postToTwitter}
-              tweetStatus={tweetStatus}
-            />
+            {activeTab === 'chat' ? (
+              <Chat 
+                messages={messages}
+                input={input}
+                setInput={setInput}
+                onSend={handleSend}
+                loading={loading}
+                onKeyDown={handleKeyDown}
+                lastQ={lastQ}
+                lastA={lastA}
+                postToTwitter={postToTwitter}
+                tweetStatus={tweetStatus}
+              />
+            ) : (
+              <TwitterBotManager />
+            )}
           </div>
         </div>
       </main>
