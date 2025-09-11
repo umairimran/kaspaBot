@@ -449,21 +449,40 @@ class TwitterBot:
             current_time = datetime.now()
             logging.info(f"🔄 Starting bot cycle at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
             
+            print(f"\n🔍 [{current_time.strftime('%H:%M:%S')}] CHECKING FOR NEW MENTIONS...")
+            
             # Search for mentions
             mentions = self.search_mentions()
             
             if mentions:
+                # Enhanced mention summary
+                total_found = len(mentions)
+                already_processed = sum(1 for m in mentions if db_queue.is_mention_processed(m["id"]))
+                new_to_process = total_found - already_processed
+                
+                print(f"� MENTION SUMMARY:")
+                print(f"   📱 Total mentions found: {total_found}")
+                print(f"   ✅ Already processed: {already_processed}")
+                print(f"   🆕 New to process: {new_to_process}")
+                
                 logging.info(f"📥 Found {len(mentions)} mentions to process")
-                print(f"📥 [SEARCH] Found {len(mentions)} mentions, storing in database...")
+                
+                if new_to_process > 0:
+                    print(f"\n🔄 PROCESSING QUEUE:")
                 
                 # Store all mentions in database immediately with post_status=false
                 headers = {"Authorization": f"Bearer {BEARER}"}
-                for mention in mentions:
+                processed_count = 0
+                
+                for i, mention in enumerate(mentions, 1):
                     mention_id = mention["id"]
                     
                     # Skip if already in database
                     if db_queue.is_mention_processed(mention_id):
                         continue
+                    
+                    processed_count += 1
+                    print(f"\n📝 [{processed_count}/{new_to_process}] Processing mention ID: {mention_id}")
                     
                     try:
                         mention_text = mention["text"]
@@ -471,13 +490,22 @@ class TwitterBot:
                         author_id = mention["author_id"]
                         created_at = mention.get("created_at", "")
                         
+                        print(f"   💬 Mention: \"{mention_text[:80]}{'...' if len(mention_text) > 80 else ''}\"")
+                        
                         # Get original tweet content if this is a reply
                         original_content = None
                         if conversation_id and conversation_id != mention_id:
                             original_content = self.mention_processor.get_original_tweet_content(conversation_id, headers)
+                            if original_content:
+                                print(f"   📄 Original post: \"{original_content[:60]}{'...' if len(original_content) > 60 else ''}\"")
                         
                         # Extract the actual question
                         question = self.mention_processor.extract_question_from_mention(mention_text, BOT_HANDLE)
+                        
+                        if question:
+                            print(f"   ❓ Extracted question: \"{question[:80]}{'...' if len(question) > 80 else ''}\"")
+                        else:
+                            print(f"   ❓ No specific question found - will provide general greeting")
                         
                         # Build context question
                         if original_content and question:
@@ -489,12 +517,14 @@ class TwitterBot:
                         else:
                             context_question = "Hello! How can I help you with Kaspa?"
                         
+                        print(f"   🧠 Generating AI response...")
+                        
                         # Get AI response
                         ai_response = self.mention_processor.get_ai_response(context_question, conversation_id)
                         
                         # Check if AI response is unavailable
                         if ai_response == "Sorry, I'm currently unavailable.":
-                            print(f"⚠️ [AI] Skipping mention {mention_id} - AI unavailable")
+                            print(f"   ⚠️ AI service unavailable - skipping mention")
                             logging.info(f"⚠️ Skipping mention {mention_id} - AI response unavailable")
                             # Still mark as processed to avoid re-processing
                             db_queue.add_processed_mention(mention_id)
@@ -503,6 +533,8 @@ class TwitterBot:
                         # Limit response length for Twitter
                         if len(ai_response) > 250:
                             ai_response = ai_response[:247] + "..."
+                        
+                        print(f"   🤖 AI Response: \"{ai_response[:80]}{'...' if len(ai_response) > 80 else ''}\"")
                         
                         # Store in database with post_status=false
                         mention_data = {
@@ -524,26 +556,32 @@ class TwitterBot:
                         )
                         
                         if success:
-                            print(f"✅ [DB] Stored mention {mention_id} in database")
+                            print(f"   ✅ Added to posting queue")
                             logging.info(f"✅ Stored mention {mention_id} in database")
                             # Mark as processed
                             db_queue.add_processed_mention(mention_id)
                         else:
-                            print(f"⚠️ [DB] Mention {mention_id} already in database")
+                            print(f"   ⚠️ Already in queue")
                             
                     except Exception as e:
+                        print(f"   ❌ Error processing mention: {e}")
                         logging.error(f"❌ Error processing mention {mention_id}: {e}")
                         continue
             else:
                 logging.info("📭 No new mentions found")
-                print("📭 [SEARCH] No new mentions found")
+                print("   � No new mentions found this check")
             
             # Process queue (post responses that are not yet posted)
+            print(f"\n📤 POSTING FROM QUEUE:")
             self.process_queue()
             
             # Print status and next execution time
             queue_stats = self.response_queue.get_queue_stats()
             posts_remaining = self.rate_tracker.get_posts_remaining()
+            
+            print(f"\n📋 PROCESSING COMPLETE:")
+            print(f"   📝 Queue status: {queue_stats['pending']} pending responses")
+            print(f"   📤 Posts remaining today: {posts_remaining}")
             
             # Calculate next execution time
             next_search_time = datetime.fromtimestamp(
@@ -552,6 +590,10 @@ class TwitterBot:
             next_post_time = datetime.fromtimestamp(
                 self.rate_tracker.data.get("last_post_reset", 0) + POST_WINDOW
             )
+            
+            print(f"   ⏰ Next search: {next_search_time.strftime('%H:%M:%S')}")
+            print(f"   🔄 Next post reset: {next_post_time.strftime('%Y-%m-%d %H:%M:%S')}")
+            print("-" * 60)
             
             logging.info(f"📊 Status - Queue: {queue_stats['pending']} pending, "
                         f"Posts remaining today: {posts_remaining}")
@@ -563,6 +605,17 @@ class TwitterBot:
     
     def run(self):
         """Main bot loop"""
+        print("="*70)
+        print("🤖 KASPA TWITTER BOT - OPTIMIZED VERSION")
+        print("="*70)
+        print(f"📱 Monitoring handle: {BOT_HANDLE}")
+        print(f"🔗 Backend endpoint: {BACKEND_URL}")
+        print(f"⏰ Search interval: {SEARCH_RATE_LIMIT//60} minutes")
+        print(f"📤 Daily post limit: {POST_RATE_LIMIT} tweets")
+        print(f"💾 Using database queue management")
+        print("🛑 Press Ctrl+C to stop")
+        print("="*70)
+        
         logging.info("🚀 Twitter Bot Started")
         logging.info(f"📱 Monitoring: {BOT_HANDLE}")
         logging.info(f"🔗 Backend: {BACKEND_URL}")
@@ -578,6 +631,8 @@ class TwitterBot:
             try:
                 # Wait before next cycle
                 wait_time = SEARCH_RATE_LIMIT
+                print(f"\n💤 Sleeping for {wait_time//60} minutes until next check...")
+                print("=" * 70)
                 logging.info(f"💤 Sleeping for {wait_time//60} minutes...")
                 time.sleep(wait_time)
                 
@@ -585,6 +640,9 @@ class TwitterBot:
                 self.run_cycle()
                 
             except KeyboardInterrupt:
+                print("\n" + "="*70)
+                print("🛑 Twitter bot stopped by user")
+                print("="*70)
                 logging.info("\n🛑 Twitter bot stopped by user")
                 break
             except Exception as e:
