@@ -4,9 +4,12 @@
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams, PointStruct
 import numpy as np
+import os
 
-QDRANT_HOST = 'localhost'
-QDRANT_PORT = 6333
+# Allow overriding via environment for containerized deployments
+# Defaults keep local dev working out of the box
+QDRANT_HOST = os.getenv('QDRANT_HOST', 'localhost')
+QDRANT_PORT = int(os.getenv('QDRANT_PORT', '6333'))
 COLLECTION_NAME = 'kaspa_embeddings'
 VECTOR_SIZE = 1536  # Change to your embedding size
 
@@ -17,7 +20,7 @@ try:
     client.get_collections()
     print(f"✅ Connected to Qdrant at {QDRANT_HOST}:{QDRANT_PORT}")
 except Exception as e:
-    print(f"❌ Failed to connect to Qdrant: {e}")
+    print(f"❌ Failed to connect to Qdrant at {QDRANT_HOST}:{QDRANT_PORT}: {e}")
     client = None
 
 def create_collection():

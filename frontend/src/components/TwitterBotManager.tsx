@@ -37,6 +37,10 @@ interface Interaction {
 }
 
 const TwitterBotManager: React.FC = () => {
+  const baseUrl = (import.meta as any)?.env?.VITE_API_URL ||
+    (typeof window !== 'undefined'
+      ? `${window.location.protocol}//${window.location.hostname}:8001`
+      : 'http://0.0.0.0:8001');
   const [status, setStatus] = useState<TwitterBotStatus | null>(null);
   const [queue, setQueue] = useState<QueueResponse[]>([]);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
@@ -45,7 +49,7 @@ const TwitterBotManager: React.FC = () => {
 
   const fetchStatus = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001'}/twitter/status`);
+      const response = await fetch(`${baseUrl}/twitter/status`);
       const data = await response.json();
       if (data.success) {
         setStatus(data.status);
@@ -59,7 +63,7 @@ const TwitterBotManager: React.FC = () => {
 
   const fetchQueue = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001'}/twitter/queue`);
+      const response = await fetch(`${baseUrl}/twitter/queue`);
       const data = await response.json();
       if (data.success) {
         setQueue(data.pending_responses || []);
@@ -79,7 +83,7 @@ const TwitterBotManager: React.FC = () => {
 
   const fetchInteractions = async () => {
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001'}/twitter/interactions?limit=5`);
+      const response = await fetch(`${baseUrl}/twitter/interactions?limit=5`);
       const data = await response.json();
       if (data.success) {
         setInteractions(data.interactions || []);
@@ -92,7 +96,7 @@ const TwitterBotManager: React.FC = () => {
   const startBot = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001'}/twitter/start`, { method: 'POST' });
+      const response = await fetch(`${baseUrl}/twitter/start`, { method: 'POST' });
       const data = await response.json();
       if (data.success) {
         await fetchStatus();
@@ -110,7 +114,7 @@ const TwitterBotManager: React.FC = () => {
   const stopBot = async () => {
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001'}/twitter/stop`, { method: 'POST' });
+      const response = await fetch(`${baseUrl}/twitter/stop`, { method: 'POST' });
       const data = await response.json();
       if (data.success) {
         await fetchStatus();
@@ -132,7 +136,7 @@ const TwitterBotManager: React.FC = () => {
     
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001'}/twitter/queue/clear`, { method: 'POST' });
+      const response = await fetch(`${baseUrl}/twitter/queue/clear`, { method: 'POST' });
       const data = await response.json();
       if (data.success) {
         await fetchQueue();
@@ -158,7 +162,7 @@ const TwitterBotManager: React.FC = () => {
     
     setLoading(true);
     try {
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8001'}/twitter/interactions/clear`, { method: 'POST' });
+      const response = await fetch(`${baseUrl}/twitter/interactions/clear`, { method: 'POST' });
       const data = await response.json();
       if (data.success) {
         await fetchInteractions();

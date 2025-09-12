@@ -1,0 +1,11 @@
+venv
+node_modules
+frontend/node_modules
+**/__pycache__
+**/*.pyc
+qdrant_storage
+.git
+.gitignore
+**/.env
+backend/twitter_bot.log
+
