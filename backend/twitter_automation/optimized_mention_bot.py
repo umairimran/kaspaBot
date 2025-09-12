@@ -168,25 +168,61 @@ class MentionProcessor:
     def get_ai_response(self, question: str, conversation_id: str) -> str:
         """Get AI response from backend"""
         try:
-            response = requests.post(f"http://54.80.95.214:8000/ask", json={
+            print(f"🔍 DEBUG [1]: Starting API call to backend")
+            print(f"🔍 DEBUG [2]: URL: http://54.80.95.214:8000/ask")
+            print(f"🔍 DEBUG [3]: Payload: question={question[:30]}..., conversation_id={conversation_id}, user_id=twitter_user")
+            
+            # Prepare the request
+            url = "http://54.80.95.214:8000/ask"
+            payload = {
                 "question": question,
                 "conversation_id": conversation_id,
                 "user_id": "twitter_user"
-            }, timeout=30)
+            }
             
-            print(f"🔍 DEBUG: Backend API response status: {response.status_code}")
-            print(f"🔍 DEBUG: Backend API response text: {response.text[:200]}...")
+            print(f"🔍 DEBUG [4]: About to make POST request")
             
+            # Make the request
+            response = requests.post(url, json=payload, timeout=30)
+            
+            print(f"🔍 DEBUG [5]: Request completed")
+            print(f"🔍 DEBUG [6]: Response status code: {response.status_code}")
+            print(f"🔍 DEBUG [7]: Response headers: {dict(response.headers)}")
+            
+            # Check if we got a valid response
             if response.status_code == 200:
-                data = response.json()
-                answer = data.get("answer", "Sorry, I couldn't process your question.")
-                return answer
+                print(f"🔍 DEBUG [8]: Successful response (200)")
+                
+                # Parse the JSON response
+                try:
+                    print(f"🔍 DEBUG [9]: Parsing JSON response")
+                    data = response.json()
+                    print(f"🔍 DEBUG [10]: JSON parsed successfully")
+                    
+                    # Extract the answer
+                    answer = data.get("answer", "Sorry, I couldn't process your question.")
+                    print(f"🔍 DEBUG [11]: Answer extracted: {answer[:50]}...")
+                    return answer
+                except json.JSONDecodeError as je:
+                    print(f"🔍 DEBUG [ERROR]: JSON parsing failed: {je}")
+                    print(f"🔍 DEBUG [ERROR]: Response text: {response.text[:200]}")
+                    return "Sorry, I'm experiencing technical difficulties (JSON error)."
             else:
-                print(f"🔍 DEBUG: Non-200 status code: {response.status_code}")
+                print(f"🔍 DEBUG [ERROR]: Non-200 status code: {response.status_code}")
+                print(f"🔍 DEBUG [ERROR]: Response text: {response.text[:200]}")
                 return "Sorry, I'm experiencing technical difficulties."
+        except requests.exceptions.Timeout:
+            print(f"🔍 DEBUG [ERROR]: Request timed out after 30 seconds")
+            return "Sorry, I'm currently unavailable (timeout)."
+        except requests.exceptions.ConnectionError as ce:
+            print(f"🔍 DEBUG [ERROR]: Connection error: {ce}")
+            return "Sorry, I'm currently unavailable (connection error)."
         except Exception as e:
+            print(f"🔍 DEBUG [ERROR]: Unexpected error: {type(e).__name__}: {e}")
+            import traceback
+            print(f"🔍 DEBUG [ERROR]: Traceback: {traceback.format_exc()}")
             logging.error(f"❌ Error getting AI response: {e}")
-            return "Sorry, I'm currently unavailable."
+            return "Sorry, I'm currently unavailable (unexpected error)."
     
     def extract_question_from_mention(self, mention_text: str, bot_handle: str) -> str:
         """Extract the actual question from mention text"""
@@ -221,41 +257,61 @@ class MentionProcessor:
     
     def process_mentions(self, mentions: List[Dict], headers: Dict) -> List[Dict]:
         """Process mentions and generate responses"""
+        print(f"🔍 PROCESS [1]: Starting to process {len(mentions)} mentions")
         processed_responses = []
         
         for mention in mentions:
             mention_id = mention["id"]
+            print(f"🔍 PROCESS [2]: Processing mention ID: {mention_id}")
             
             # Skip if already processed (posted or in queue)
             if db_queue.is_mention_processed(mention_id):
+                print(f"🔍 PROCESS [3]: Skipping already processed mention: {mention_id}")
                 continue
             
             try:
+                print(f"🔍 PROCESS [4]: Extracting mention data")
                 mention_text = mention["text"]
                 conversation_id = mention["conversation_id"]
                 author_id = mention["author_id"]
                 created_at = mention.get("created_at", "")
                 
+                print(f"🔍 PROCESS [5]: Mention text: {mention_text[:50]}...")
+                print(f"🔍 PROCESS [6]: Conversation ID: {conversation_id}")
+                
                 # Get original tweet content if this is a reply
                 original_content = None
                 if conversation_id and conversation_id != mention_id:
+                    print(f"🔍 PROCESS [7]: Getting original tweet content for conversation: {conversation_id}")
                     original_content = self.get_original_tweet_content(conversation_id, headers)
+                    print(f"🔍 PROCESS [8]: Original content: {original_content[:50] if original_content else 'None'}...")
                 
                 # Extract the actual question
+                print(f"🔍 PROCESS [9]: Extracting question from mention")
                 question = self.extract_question_from_mention(mention_text, BOT_HANDLE)
+                print(f"🔍 PROCESS [10]: Extracted question: {question[:50]}...")
                 
                 # Build context question
+                print(f"🔍 PROCESS [11]: Building context question")
                 if original_content and question:
                     context_question = f"Original post: '{original_content}'\n\nUser's question/mention: '{question}'"
+                    print(f"🔍 PROCESS [12]: Using original post + question")
                 elif original_content and not question:
                     context_question = f"Please explain or comment on this: '{original_content}'"
+                    print(f"🔍 PROCESS [13]: Using original post only")
                 elif question:
                     context_question = question
+                    print(f"🔍 PROCESS [14]: Using question only")
                 else:
                     context_question = "Hello! How can I help you with Kaspa?"
+                    print(f"🔍 PROCESS [15]: Using default greeting")
+                
+                print(f"🔍 PROCESS [16]: Final context question: {context_question[:50]}...")
                 
                 # Get AI response
+                print(f"🔍 PROCESS [17]: Calling get_ai_response")
                 ai_response = self.get_ai_response(context_question, conversation_id)
+                print(f"🔍 PROCESS [18]: AI response received: {ai_response[:50]}...")
                 
                 # Check if AI response is unavailable
                 if ai_response == "Sorry, I'm currently unavailable.":
@@ -451,12 +507,15 @@ class TwitterBot:
         """Run one complete cycle of the bot"""
         try:
             current_time = datetime.now()
+            print(f"🔍 CYCLE [1]: Starting bot cycle at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
             logging.info(f"🔄 Starting bot cycle at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
             
-            print(f"\n🔍 [{current_time.strftime('%H:%M:%S')}] CHECKING FOR NEW MENTIONS...")
+            print(f"\n🔍 CYCLE [2]: [{current_time.strftime('%H:%M:%S')}] CHECKING FOR NEW MENTIONS...")
             
             # Search for mentions
+            print(f"🔍 CYCLE [3]: Calling search_mentions()")
             mentions = self.search_mentions()
+            print(f"🔍 CYCLE [4]: Found {len(mentions) if mentions else 0} mentions")
             
             if mentions:
                 # Enhanced mention summary
