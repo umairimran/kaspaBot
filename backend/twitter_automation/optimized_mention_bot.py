@@ -170,9 +170,14 @@ class MentionProcessor:
         try:
             print(f"🔍 AI TEST: Calling backend API...")
             print(f"🔍 AI TEST: Question: {question[:50]}...")
-            print(f"🔍 AI TEST: URL: http://54.80.95.214:8000/ask")
+            print(f"🔍 AI TEST: URL: http://localhost:8000/ask")
             
-            response = requests.post(f"http://54.80.95.214:8000/ask", json={
+            # PAUSE: Wait for user to press any key before making API call
+            print(f"\n⏸️  PAUSE: Press ENTER to make API call, or Ctrl+C to stop...")
+            input()
+            print(f"🚀 Making API call now...")
+            
+            response = requests.post(f"http://localhost:8000/ask", json={
                 "question": question,
                 "conversation_id": conversation_id,
                 "user_id": "twitter_user"
@@ -464,6 +469,11 @@ class TwitterBot:
             logging.info(f"🔄 Starting bot cycle at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
             
             print(f"\n🔍 [{current_time.strftime('%H:%M:%S')}] TESTING AI GENERATION...")
+            
+            # PAUSE: Wait for user to start the test
+            print(f"\n⏸️  PAUSE: Press ENTER to start AI testing, or Ctrl+C to stop...")
+            input()
+            print(f"🚀 Starting AI test...")
             
             # TEST MODE: Skip Twitter API, use fixed test questions
             test_questions = [
