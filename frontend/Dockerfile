@@ -11,5 +11,6 @@ RUN npm i -g serve@14.2.1
 COPY --from=build /app/dist ./dist
 ENV PORT=5173
 EXPOSE 5173
-CMD ["sh", "-c", "serve -s dist -l $PORT"]
+# Bind to 0.0.0.0 so the container is accessible from outside
+CMD ["sh", "-c", "serve -s dist -l tcp://0.0.0.0:$PORT"]
 
