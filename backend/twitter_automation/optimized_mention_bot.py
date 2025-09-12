@@ -41,8 +41,8 @@ CONSUMER_SECRET = os.getenv("TWITTER_API_SECRET")
 ACCESS_TOKEN = os.getenv("TWITTER_ACCESS_TOKEN")
 ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 
-BOT_HANDLE = "@meshahzad92"
-BACKEND_URL = "http://localhost:8000"
+BOT_HANDLE = os.getenv("BOT_HANDLE")
+BACKEND_URL = os.getenv("BACKEND_URL")
 
 # API Rate Limits (Free Tier)
 SEARCH_RATE_LIMIT = 900  # 15 minutes between search requests

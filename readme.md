@@ -46,7 +46,7 @@ cd frontend && npm install
 # TWITTER_API_SECRET=your_secret
 # TWITTER_ACCESS_TOKEN=your_access_token
 # TWITTER_ACCESS_TOKEN_SECRET=your_access_secret
-# BACKEND_URL=http://localhost:8000
+# BACKEND_URL=http://localhost:8001
 ```
 
 ## 💡 Features
@@ -88,7 +88,7 @@ TWITTER_API_KEY=your_api_key
 TWITTER_API_SECRET=your_api_secret
 TWITTER_ACCESS_TOKEN=your_access_token
 TWITTER_ACCESS_TOKEN_SECRET=your_access_token_secret
-BACKEND_URL=http://localhost:8000
+BACKEND_URL=http://localhost:8001
 ```
 
 ## 📁 File Structure

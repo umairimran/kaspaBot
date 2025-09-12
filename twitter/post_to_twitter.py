@@ -45,7 +45,7 @@ if not ACCESS_TOKEN or not ACCESS_TOKEN_SECRET:
 
 
 # -------- 4) Ask question, get answer from backend, then post as tweet --------
-BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8000/ask")
+BACKEND_URL = os.getenv("BACKEND_URL", "http://localhost:8001/ask")
 question = input("Enter your question: ").strip()
 try:
     response = requests.post(BACKEND_URL, json={"question": question}, timeout=30)

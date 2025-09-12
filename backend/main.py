@@ -37,8 +37,8 @@ def start_twitter_bot_async():
 
 if __name__ == "__main__":
     print("🚀 Starting Kaspa RAG Backend with Twitter Bot...")
-    print("📡 API will be available at: http://localhost:8000")
-    print("📝 API docs at: http://localhost:8000/docs")
+    print("📡 API will be available at: " + os.getenv("BACKEND_URL"))
+    print("📝 API docs at: " + os.getenv("BACKEND_URL") + "/docs")
     print("🤖 Twitter bot will start automatically")
     print("⚡ Press Ctrl+C to stop")
     print("-" * 50)
@@ -48,10 +48,18 @@ if __name__ == "__main__":
     bot_thread.start()
     
     try:
+        # Use BACKEND_URL env var to determine host/port if available, else default to 0.0.0.0:8001
+        from urllib.parse import urlparse
+
+        backend_url = os.getenv("BACKEND_URL", "http://0.0.0.0:8001")
+        parsed = urlparse(backend_url)
+        host = parsed.hostname or "0.0.0.0"
+        port = parsed.port or 8001
+
         uvicorn.run(
-            "api:app", 
-            host="0.0.0.0", 
-            port=8000, 
+            "api:app",
+            host=host,
+            port=port,
             reload=True,
             log_level="info"
         )
