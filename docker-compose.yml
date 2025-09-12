@@ -19,11 +19,11 @@ services:
       - USE_QDRANT=true
       - QDRANT_HOST=qdrant
       - QDRANT_PORT=6333
-      - BACKEND_URL=http://0.0.0.0:8001
+      - BACKEND_URL=http://0.0.0.0:8000
     depends_on:
       - qdrant
     ports:
-      - "8000:8001"
+      - "8000:8000"
     volumes:
       - ./backend/db:/app/backend/db
 
