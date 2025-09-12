@@ -28,7 +28,7 @@ COPY embeddings ./embeddings
 ENV USE_QDRANT=true \
     QDRANT_HOST=qdrant \
     QDRANT_PORT=6333 \
-    BACKEND_URL=http://0.0.0.0:8000
+    BACKEND_URL=http://localhost:8000
 
 EXPOSE 8000
 
