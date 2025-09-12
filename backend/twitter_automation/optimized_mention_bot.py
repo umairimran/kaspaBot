@@ -168,33 +168,23 @@ class MentionProcessor:
     def get_ai_response(self, question: str, conversation_id: str) -> str:
         """Get AI response from backend"""
         try:
-            print(f"🔍 AI TEST: Calling backend API...")
-            print(f"🔍 AI TEST: Question: {question[:50]}...")
-            print(f"🔍 AI TEST: URL: http://localhost:8000/ask")
-            
-            response = requests.post(f"http://localhost:8000/ask", json={
+            response = requests.post(f"http://54.80.95.214:8000/ask", json={
                 "question": question,
                 "conversation_id": conversation_id,
                 "user_id": "twitter_user"
             }, timeout=30)
             
-            print(f"🔍 AI TEST: Response status: {response.status_code}")
-            print(f"🔍 AI TEST: Response headers: {dict(response.headers)}")
-            print(f"🔍 AI TEST: Response text: {response.text[:300]}...")
+            print(f"🔍 DEBUG: Backend API response status: {response.status_code}")
+            print(f"🔍 DEBUG: Backend API response text: {response.text[:200]}...")
             
             if response.status_code == 200:
                 data = response.json()
                 answer = data.get("answer", "Sorry, I couldn't process your question.")
-                print(f"🔍 AI TEST: Success! Answer: {answer[:100]}...")
                 return answer
             else:
-                print(f"🔍 AI TEST: ERROR - Status {response.status_code}")
-                print(f"🔍 AI TEST: Full response: {response.text}")
+                print(f"🔍 DEBUG: Non-200 status code: {response.status_code}")
                 return "Sorry, I'm experiencing technical difficulties."
         except Exception as e:
-            print(f"🔍 AI TEST: EXCEPTION - {type(e).__name__}: {e}")
-            import traceback
-            print(f"🔍 AI TEST: Traceback: {traceback.format_exc()}")
             logging.error(f"❌ Error getting AI response: {e}")
             return "Sorry, I'm currently unavailable."
     
@@ -463,29 +453,10 @@ class TwitterBot:
             current_time = datetime.now()
             logging.info(f"🔄 Starting bot cycle at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
             
-            print(f"\n🔍 [{current_time.strftime('%H:%M:%S')}] TESTING AI GENERATION...")
+            print(f"\n🔍 [{current_time.strftime('%H:%M:%S')}] CHECKING FOR NEW MENTIONS...")
             
-            # TEST MODE: Skip Twitter API, use fixed test questions
-            test_questions = [
-                "What is the best memecoin on Kaspa?",
-                "Tell me about Kaspa blockchain",
-                "How does Kaspa work?",
-                "What makes Kaspa different from Bitcoin?",
-                "Explain Kaspa's consensus mechanism"
-            ]
-            
-            # Simulate mentions with test questions
-            mentions = []
-            for i, question in enumerate(test_questions):
-                mentions.append({
-                    "id": f"test_mention_{i}_{int(time.time())}",
-                    "text": f"@KangoProfessor {question}",
-                    "conversation_id": f"test_conversation_{i}",
-                    "author_id": f"test_user_{i}",
-                    "created_at": datetime.now().isoformat()
-                })
-            
-            print(f"🧪 TEST MODE: Using {len(mentions)} test questions")
+            # Search for mentions
+            mentions = self.search_mentions()
             
             if mentions:
                 # Enhanced mention summary
@@ -493,7 +464,7 @@ class TwitterBot:
                 already_processed = sum(1 for m in mentions if db_queue.is_mention_processed(m["id"]))
                 new_to_process = total_found - already_processed
                 
-                print(f"� MENTION SUMMARY:")
+                print(f"  MENTION SUMMARY:")
                 print(f"   📱 Total mentions found: {total_found}")
                 print(f"   ✅ Already processed: {already_processed}")
                 print(f"   🆕 New to process: {new_to_process}")
@@ -602,11 +573,11 @@ class TwitterBot:
                         continue
             else:
                 logging.info("📭 No new mentions found")
-                print("   � No new mentions found this check")
+                print("     No new mentions found this check")
             
-            # TEST MODE: Skip posting to Twitter, just show AI responses
-            print(f"\n📤 TEST MODE: Skipping Twitter posting, showing AI responses only")
-            # self.process_queue()  # Disabled for testing
+            # Process queue (post responses that are not yet posted)
+            print(f"\n📤 POSTING FROM QUEUE:")
+            self.process_queue()
             
             # Print status and next execution time
             queue_stats = self.response_queue.get_queue_stats()
@@ -639,12 +610,13 @@ class TwitterBot:
     def run(self):
         """Main bot loop"""
         print("="*70)
-        print("🧪 KASPA AI TEST BOT - TEST MODE")
+        print("🤖 KASPA TWITTER BOT - OPTIMIZED VERSION")
         print("="*70)
+        print(f"📱 Monitoring handle: {BOT_HANDLE}")
         print(f"🔗 Backend endpoint: {BACKEND_URL}")
-        print(f"⏰ Test interval: 1 minute")
-        print(f"🧪 Testing AI generation with fixed questions")
-        print(f"📤 Twitter posting: DISABLED")
+        print(f"⏰ Search interval: {SEARCH_RATE_LIMIT//60} minutes")
+        print(f"📤 Daily post limit: {POST_RATE_LIMIT} tweets")
+        print(f"💾 Using database queue management")
         print("🛑 Press Ctrl+C to stop")
         print("="*70)
         
@@ -661,11 +633,11 @@ class TwitterBot:
         
         while True:
             try:
-                # TEST MODE: Wait only 1 minute instead of 15 minutes
-                wait_time = 60  # 1 minute for testing
-                print(f"\n💤 Sleeping for {wait_time} seconds until next test...")
+                # Wait before next cycle
+                wait_time = SEARCH_RATE_LIMIT
+                print(f"\n💤 Sleeping for {wait_time//60} minutes until next check...")
                 print("=" * 70)
-                logging.info(f"💤 Sleeping for {wait_time} seconds...")
+                logging.info(f"💤 Sleeping for {wait_time//60} minutes...")
                 time.sleep(wait_time)
                 
                 # Run next cycle
