@@ -102,7 +102,9 @@ def ask_question(request: QueryRequest):
     if USE_QDRANT:
         # Use Qdrant for retrieval
         try:
+            print(f"🔍 DEBUG: Starting Qdrant retrieval for: {request.question}")
             results = retrieve_from_qdrant(request.question, k=5)
+            print(f"🔍 DEBUG: Retrieved {len(results)} results from Qdrant")
             
             # Build prompt with conversation context
             base_prompt = build_flexible_prompt(request.question, results)
@@ -115,7 +117,9 @@ def ask_question(request: QueryRequest):
             else:
                 messages = base_prompt
             
+            print(f"🔍 DEBUG: About to call generate_answer with {len(messages)} messages")
             answer = generate_answer(messages)
+            print(f"🔍 DEBUG: Generated answer: {answer[:100]}...")
 
             # Add assistant response to conversation
             citation_metadata = {"citations": [{"source": r["source"], "score": r.get("score", 0)} for r in results]}
@@ -140,6 +144,10 @@ def ask_question(request: QueryRequest):
                 "vector_db": "qdrant"
             }
         except Exception as e:
+            print(f"🔍 DEBUG: Error in Qdrant processing: {str(e)}")
+            print(f"🔍 DEBUG: Exception type: {type(e).__name__}")
+            import traceback
+            print(f"🔍 DEBUG: Traceback: {traceback.format_exc()}")
             return {
                 "answer": f"Sorry, there was an error processing your question with Qdrant: {str(e)}",
                 "citations": [],
