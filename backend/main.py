@@ -51,7 +51,7 @@ if __name__ == "__main__":
         # Use BACKEND_URL env var to determine host/port if available, else default to 0.0.0.0:8001
         from urllib.parse import urlparse
 
-        backend_url = os.getenv("BACKEND_BIND_URL", "http://0.0.0.0:8000")
+        backend_url = os.getenv("BACKEND_URL", "http://0.0.0.0:8000")
         parsed = urlparse(backend_url)
         host = parsed.hostname or "0.0.0.0"
         port = parsed.port or 8001
