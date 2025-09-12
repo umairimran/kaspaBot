@@ -39,8 +39,8 @@ interface Interaction {
 const TwitterBotManager: React.FC = () => {
   const baseUrl = (import.meta as any)?.env?.VITE_API_URL ||
     (typeof window !== 'undefined'
-      ? `${window.location.protocol}//${window.location.hostname}:8001`
-      : 'http://0.0.0.0:8001');
+      ? `${window.location.protocol}//${window.location.hostname}:8000`
+      : 'http://0.0.0.0:8000');
   const [status, setStatus] = useState<TwitterBotStatus | null>(null);
   const [queue, setQueue] = useState<QueueResponse[]>([]);
   const [interactions, setInteractions] = useState<Interaction[]>([]);
