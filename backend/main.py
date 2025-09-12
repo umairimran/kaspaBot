@@ -18,7 +18,7 @@ from twitter_bot_integration import bot_manager
 
 def start_twitter_bot_async():
     """Start Twitter bot in background after a short delay"""
-    time.sleep(10)  # Wait longer for API to be fully ready
+    time.sleep(20)  # Wait longer for API to be fully ready
     print("🤖 Starting Twitter bot...")
     result = bot_manager.start_bot()
     if result["success"]:
