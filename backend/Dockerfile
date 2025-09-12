@@ -27,8 +27,7 @@ COPY embeddings ./embeddings
 # Default environment variables; override via compose
 ENV USE_QDRANT=true \
     QDRANT_HOST=qdrant \
-    QDRANT_PORT=6333 \
-    BACKEND_URL=http://0.0.0.0:8000
+    QDRANT_PORT=6333
 
 EXPOSE 8000
 
