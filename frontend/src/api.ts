@@ -6,8 +6,8 @@ const resolvedBaseURL =
   (import.meta as any)?.env?.VITE_API_URL ||
   (typeof import.meta !== 'undefined' && (import.meta as any)?.env?.VITE_API_URL) ||
   (typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.hostname}:8001`
-    : 'http://127.0.0.1:8001')
+    ? `${window.location.protocol}//${window.location.hostname}:8000`
+    : 'http://127.0.0.1:8000')
 
 const api = axios.create({
   baseURL: resolvedBaseURL,
