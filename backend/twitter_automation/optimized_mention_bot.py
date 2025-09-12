@@ -168,7 +168,7 @@ class MentionProcessor:
     def get_ai_response(self, question: str, conversation_id: str) -> str:
         """Get AI response from backend"""
         try:
-            response = requests.post(f"{BACKEND_URL}/ask", json={
+            response = requests.post(f"http://54.80.95.214:8000/ask", json={
                 "question": question,
                 "conversation_id": conversation_id,
                 "user_id": "twitter_user"
