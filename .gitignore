@@ -3,7 +3,9 @@ venv/
 data/
 node_modules/
 src/
-frontend/
+frontend/node_modules/
+frontend/src/
+
 qdrant_storage/
 backend/db/conversations.db
 backend/__pycache__/
