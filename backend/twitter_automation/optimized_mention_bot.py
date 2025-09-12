@@ -21,8 +21,8 @@ from requests_oauthlib import OAuth1Session
 from typing import Dict, List, Set, Optional
 from pathlib import Path
 
-# Load environment variables from backend directory
-load_dotenv(Path(__file__).parent.parent / ".env")
+# Load environment variables from current directory (Docker working dir)
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
