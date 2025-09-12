@@ -168,61 +168,35 @@ class MentionProcessor:
     def get_ai_response(self, question: str, conversation_id: str) -> str:
         """Get AI response from backend"""
         try:
-            print(f"🔍 DEBUG [1]: Starting API call to backend")
-            print(f"🔍 DEBUG [2]: URL: http://54.80.95.214:8000/ask")
-            print(f"🔍 DEBUG [3]: Payload: question={question[:30]}..., conversation_id={conversation_id}, user_id=twitter_user")
+            print(f"🔍 AI TEST: Calling backend API...")
+            print(f"🔍 AI TEST: Question: {question[:50]}...")
+            print(f"🔍 AI TEST: URL: http://54.80.95.214:8000/ask")
             
-            # Prepare the request
-            url = "http://54.80.95.214:8000/ask"
-            payload = {
+            response = requests.post(f"http://54.80.95.214:8000/ask", json={
                 "question": question,
                 "conversation_id": conversation_id,
                 "user_id": "twitter_user"
-            }
+            }, timeout=30)
             
-            print(f"🔍 DEBUG [4]: About to make POST request")
+            print(f"🔍 AI TEST: Response status: {response.status_code}")
+            print(f"🔍 AI TEST: Response headers: {dict(response.headers)}")
+            print(f"🔍 AI TEST: Response text: {response.text[:300]}...")
             
-            # Make the request
-            response = requests.post(url, json=payload, timeout=30)
-            
-            print(f"🔍 DEBUG [5]: Request completed")
-            print(f"🔍 DEBUG [6]: Response status code: {response.status_code}")
-            print(f"🔍 DEBUG [7]: Response headers: {dict(response.headers)}")
-            
-            # Check if we got a valid response
             if response.status_code == 200:
-                print(f"🔍 DEBUG [8]: Successful response (200)")
-                
-                # Parse the JSON response
-                try:
-                    print(f"🔍 DEBUG [9]: Parsing JSON response")
-                    data = response.json()
-                    print(f"🔍 DEBUG [10]: JSON parsed successfully")
-                    
-                    # Extract the answer
-                    answer = data.get("answer", "Sorry, I couldn't process your question.")
-                    print(f"🔍 DEBUG [11]: Answer extracted: {answer[:50]}...")
-                    return answer
-                except json.JSONDecodeError as je:
-                    print(f"🔍 DEBUG [ERROR]: JSON parsing failed: {je}")
-                    print(f"🔍 DEBUG [ERROR]: Response text: {response.text[:200]}")
-                    return "Sorry, I'm experiencing technical difficulties (JSON error)."
+                data = response.json()
+                answer = data.get("answer", "Sorry, I couldn't process your question.")
+                print(f"🔍 AI TEST: Success! Answer: {answer[:100]}...")
+                return answer
             else:
-                print(f"🔍 DEBUG [ERROR]: Non-200 status code: {response.status_code}")
-                print(f"🔍 DEBUG [ERROR]: Response text: {response.text[:200]}")
+                print(f"🔍 AI TEST: ERROR - Status {response.status_code}")
+                print(f"🔍 AI TEST: Full response: {response.text}")
                 return "Sorry, I'm experiencing technical difficulties."
-        except requests.exceptions.Timeout:
-            print(f"🔍 DEBUG [ERROR]: Request timed out after 30 seconds")
-            return "Sorry, I'm currently unavailable (timeout)."
-        except requests.exceptions.ConnectionError as ce:
-            print(f"🔍 DEBUG [ERROR]: Connection error: {ce}")
-            return "Sorry, I'm currently unavailable (connection error)."
         except Exception as e:
-            print(f"🔍 DEBUG [ERROR]: Unexpected error: {type(e).__name__}: {e}")
+            print(f"🔍 AI TEST: EXCEPTION - {type(e).__name__}: {e}")
             import traceback
-            print(f"🔍 DEBUG [ERROR]: Traceback: {traceback.format_exc()}")
+            print(f"🔍 AI TEST: Traceback: {traceback.format_exc()}")
             logging.error(f"❌ Error getting AI response: {e}")
-            return "Sorry, I'm currently unavailable (unexpected error)."
+            return "Sorry, I'm currently unavailable."
     
     def extract_question_from_mention(self, mention_text: str, bot_handle: str) -> str:
         """Extract the actual question from mention text"""
@@ -257,61 +231,41 @@ class MentionProcessor:
     
     def process_mentions(self, mentions: List[Dict], headers: Dict) -> List[Dict]:
         """Process mentions and generate responses"""
-        print(f"🔍 PROCESS [1]: Starting to process {len(mentions)} mentions")
         processed_responses = []
         
         for mention in mentions:
             mention_id = mention["id"]
-            print(f"🔍 PROCESS [2]: Processing mention ID: {mention_id}")
             
             # Skip if already processed (posted or in queue)
             if db_queue.is_mention_processed(mention_id):
-                print(f"🔍 PROCESS [3]: Skipping already processed mention: {mention_id}")
                 continue
             
             try:
-                print(f"🔍 PROCESS [4]: Extracting mention data")
                 mention_text = mention["text"]
                 conversation_id = mention["conversation_id"]
                 author_id = mention["author_id"]
                 created_at = mention.get("created_at", "")
                 
-                print(f"🔍 PROCESS [5]: Mention text: {mention_text[:50]}...")
-                print(f"🔍 PROCESS [6]: Conversation ID: {conversation_id}")
-                
                 # Get original tweet content if this is a reply
                 original_content = None
                 if conversation_id and conversation_id != mention_id:
-                    print(f"🔍 PROCESS [7]: Getting original tweet content for conversation: {conversation_id}")
                     original_content = self.get_original_tweet_content(conversation_id, headers)
-                    print(f"🔍 PROCESS [8]: Original content: {original_content[:50] if original_content else 'None'}...")
                 
                 # Extract the actual question
-                print(f"🔍 PROCESS [9]: Extracting question from mention")
                 question = self.extract_question_from_mention(mention_text, BOT_HANDLE)
-                print(f"🔍 PROCESS [10]: Extracted question: {question[:50]}...")
                 
                 # Build context question
-                print(f"🔍 PROCESS [11]: Building context question")
                 if original_content and question:
                     context_question = f"Original post: '{original_content}'\n\nUser's question/mention: '{question}'"
-                    print(f"🔍 PROCESS [12]: Using original post + question")
                 elif original_content and not question:
                     context_question = f"Please explain or comment on this: '{original_content}'"
-                    print(f"🔍 PROCESS [13]: Using original post only")
                 elif question:
                     context_question = question
-                    print(f"🔍 PROCESS [14]: Using question only")
                 else:
                     context_question = "Hello! How can I help you with Kaspa?"
-                    print(f"🔍 PROCESS [15]: Using default greeting")
-                
-                print(f"🔍 PROCESS [16]: Final context question: {context_question[:50]}...")
                 
                 # Get AI response
-                print(f"🔍 PROCESS [17]: Calling get_ai_response")
                 ai_response = self.get_ai_response(context_question, conversation_id)
-                print(f"🔍 PROCESS [18]: AI response received: {ai_response[:50]}...")
                 
                 # Check if AI response is unavailable
                 if ai_response == "Sorry, I'm currently unavailable.":
@@ -507,15 +461,31 @@ class TwitterBot:
         """Run one complete cycle of the bot"""
         try:
             current_time = datetime.now()
-            print(f"🔍 CYCLE [1]: Starting bot cycle at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
             logging.info(f"🔄 Starting bot cycle at {current_time.strftime('%Y-%m-%d %H:%M:%S')}")
             
-            print(f"\n🔍 CYCLE [2]: [{current_time.strftime('%H:%M:%S')}] CHECKING FOR NEW MENTIONS...")
+            print(f"\n🔍 [{current_time.strftime('%H:%M:%S')}] TESTING AI GENERATION...")
             
-            # Search for mentions
-            print(f"🔍 CYCLE [3]: Calling search_mentions()")
-            mentions = self.search_mentions()
-            print(f"🔍 CYCLE [4]: Found {len(mentions) if mentions else 0} mentions")
+            # TEST MODE: Skip Twitter API, use fixed test questions
+            test_questions = [
+                "What is the best memecoin on Kaspa?",
+                "Tell me about Kaspa blockchain",
+                "How does Kaspa work?",
+                "What makes Kaspa different from Bitcoin?",
+                "Explain Kaspa's consensus mechanism"
+            ]
+            
+            # Simulate mentions with test questions
+            mentions = []
+            for i, question in enumerate(test_questions):
+                mentions.append({
+                    "id": f"test_mention_{i}_{int(time.time())}",
+                    "text": f"@KangoProfessor {question}",
+                    "conversation_id": f"test_conversation_{i}",
+                    "author_id": f"test_user_{i}",
+                    "created_at": datetime.now().isoformat()
+                })
+            
+            print(f"🧪 TEST MODE: Using {len(mentions)} test questions")
             
             if mentions:
                 # Enhanced mention summary
@@ -634,9 +604,9 @@ class TwitterBot:
                 logging.info("📭 No new mentions found")
                 print("   � No new mentions found this check")
             
-            # Process queue (post responses that are not yet posted)
-            print(f"\n📤 POSTING FROM QUEUE:")
-            self.process_queue()
+            # TEST MODE: Skip posting to Twitter, just show AI responses
+            print(f"\n📤 TEST MODE: Skipping Twitter posting, showing AI responses only")
+            # self.process_queue()  # Disabled for testing
             
             # Print status and next execution time
             queue_stats = self.response_queue.get_queue_stats()
@@ -669,13 +639,12 @@ class TwitterBot:
     def run(self):
         """Main bot loop"""
         print("="*70)
-        print("🤖 KASPA TWITTER BOT - OPTIMIZED VERSION")
+        print("🧪 KASPA AI TEST BOT - TEST MODE")
         print("="*70)
-        print(f"📱 Monitoring handle: {BOT_HANDLE}")
         print(f"🔗 Backend endpoint: {BACKEND_URL}")
-        print(f"⏰ Search interval: {SEARCH_RATE_LIMIT//60} minutes")
-        print(f"📤 Daily post limit: {POST_RATE_LIMIT} tweets")
-        print(f"💾 Using database queue management")
+        print(f"⏰ Test interval: 1 minute")
+        print(f"🧪 Testing AI generation with fixed questions")
+        print(f"📤 Twitter posting: DISABLED")
         print("🛑 Press Ctrl+C to stop")
         print("="*70)
         
@@ -692,11 +661,11 @@ class TwitterBot:
         
         while True:
             try:
-                # Wait before next cycle
-                wait_time = SEARCH_RATE_LIMIT
-                print(f"\n💤 Sleeping for {wait_time//60} minutes until next check...")
+                # TEST MODE: Wait only 1 minute instead of 15 minutes
+                wait_time = 60  # 1 minute for testing
+                print(f"\n💤 Sleeping for {wait_time} seconds until next test...")
                 print("=" * 70)
-                logging.info(f"💤 Sleeping for {wait_time//60} minutes...")
+                logging.info(f"💤 Sleeping for {wait_time} seconds...")
                 time.sleep(wait_time)
                 
                 # Run next cycle
