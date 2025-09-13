@@ -168,7 +168,7 @@ class MentionProcessor:
     def get_ai_response(self, question: str, conversation_id: str) -> str:
         """Get AI response from backend"""
         try:
-            response = requests.post(f"http://54.80.95.214:8000/ask", json={
+            response = requests.post(f"{BACKEND_URL}/ask", json={
                 "question": question,
                 "conversation_id": conversation_id,
                 "user_id": "twitter_user"
@@ -464,7 +464,7 @@ class TwitterBot:
                 already_processed = sum(1 for m in mentions if db_queue.is_mention_processed(m["id"]))
                 new_to_process = total_found - already_processed
                 
-                print(f"  MENTION SUMMARY:")
+                print(f"� MENTION SUMMARY:")
                 print(f"   📱 Total mentions found: {total_found}")
                 print(f"   ✅ Already processed: {already_processed}")
                 print(f"   🆕 New to process: {new_to_process}")
@@ -573,7 +573,7 @@ class TwitterBot:
                         continue
             else:
                 logging.info("📭 No new mentions found")
-                print("     No new mentions found this check")
+                print("   � No new mentions found this check")
             
             # Process queue (post responses that are not yet posted)
             print(f"\n📤 POSTING FROM QUEUE:")
