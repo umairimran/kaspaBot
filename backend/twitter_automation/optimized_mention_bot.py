@@ -534,9 +534,8 @@ class TwitterBot:
                             db_queue.add_processed_mention(mention_id)
                             continue
                         
-                        # Enforce strict 280 character limit for Twitter
-                        if len(ai_response) > 280:
-                            ai_response = ai_response[:277] + "..."
+                       
+                        
                         
                         print(f"   🤖 AI Response: \"{ai_response[:80]}{'...' if len(ai_response) > 80 else ''}\"")
                         
