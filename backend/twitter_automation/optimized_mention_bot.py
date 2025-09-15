@@ -45,8 +45,8 @@ BOT_HANDLE = os.getenv("BOT_HANDLE")
 BACKEND_URL = os.getenv("BACKEND_URL")
 
 # API Rate Limits (Free Tier)
-SEARCH_RATE_LIMIT = 2  # 15 minutes between search requests
-POST_RATE_LIMIT = 10000     # 17 posts per 24 hours
+SEARCH_RATE_LIMIT = 60  # 15 minutes between search requests
+POST_RATE_LIMIT = 100     # 17 posts per 24 hours
 POST_WINDOW = 86400       # 24 hours in seconds
 
 # Import database queue manager
