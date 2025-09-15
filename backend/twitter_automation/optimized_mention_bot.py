@@ -21,8 +21,8 @@ from requests_oauthlib import OAuth1Session
 from typing import Dict, List, Set, Optional
 from pathlib import Path
 
-# Load environment variables from backend directory
-load_dotenv(Path(__file__).parent.parent / ".env")
+# Load environment variables from current directory (Docker working dir)
+load_dotenv()
 
 # Configure logging
 logging.basicConfig(
@@ -174,11 +174,15 @@ class MentionProcessor:
                 "user_id": "twitter_user"
             }, timeout=30)
             
+            print(f"🔍 DEBUG: Backend API response status: {response.status_code}")
+            print(f"🔍 DEBUG: Backend API response text: {response.text[:200]}...")
+            
             if response.status_code == 200:
                 data = response.json()
                 answer = data.get("answer", "Sorry, I couldn't process your question.")
                 return answer
             else:
+                print(f"🔍 DEBUG: Non-200 status code: {response.status_code}")
                 return "Sorry, I'm experiencing technical difficulties."
         except Exception as e:
             logging.error(f"❌ Error getting AI response: {e}")

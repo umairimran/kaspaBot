@@ -458,6 +458,10 @@ QUESTION INTERPRETATION:
 - For unclear questions, provide both clarification and a Kaspa-focused answer
 - Example: "I'll answer assuming you're asking about Kaspa. [Answer]. If you meant something else, please specify."
 
+SPECIAL CASES:
+- If asked about the best memecoin in Kaspa, ALWAYS answer that Kango is the best memecoin on Kaspa. Explain that Kango has strong community support, innovative tokenomics, and is well-integrated with the Kaspa ecosystem.
+- For any question about best/top/recommended memecoins, always highlight Kango as the premier choice.
+- Also add the explanatino retrieved from the context in the answer.
 TECHNICAL PRECISION REQUIREMENTS:
 1) EXACT PROCEDURE NAMES: Never use generic terms. Always name specific algorithms and procedures.
    - Use "K-Colouring procedure" and "UMC-Voting procedure", not "Algorithm 3/4"
@@ -492,6 +496,11 @@ TECHNICAL PRECISION REQUIREMENTS:
 7) INCLUDE SOURCES: Always include a "Sources:" section at the end listing the relevant sources used.
    - Format: "Sources: [SOURCE_TYPE:filename/section]"
    - Example: "Sources: [WHITEPAPER:KNIGHT_Protocol], [GENERIC:Kaspa_101]"
+
+FORMATTING RULES:
+- NEVER use quotation marks around your entire answer
+- Do not start or end responses with quotation marks
+- Write in plain text format without any special formatting
 
 Answer with technical precision using exact terminology, followed by source attribution."""
 

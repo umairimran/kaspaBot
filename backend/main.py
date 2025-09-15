@@ -18,7 +18,7 @@ from twitter_bot_integration import bot_manager
 
 def start_twitter_bot_async():
     """Start Twitter bot in background after a short delay"""
-    time.sleep(3)  # Wait for API to be ready
+    time.sleep(20)  # Wait longer for API to be fully ready
     print("🤖 Starting Twitter bot...")
     result = bot_manager.start_bot()
     if result["success"]:
@@ -51,10 +51,12 @@ if __name__ == "__main__":
         # Use BACKEND_URL env var to determine host/port if available, else default to 0.0.0.0:8001
         from urllib.parse import urlparse
 
-        backend_url = os.getenv("BACKEND_URL", "http://0.0.0.0:8001")
-        parsed = urlparse(backend_url)
+        # For binding, we need to use 0.0.0.0, not the public IP
+        backend_bind_url = "http://0.0.0.0:8000"
+        backend_url = os.getenv("BACKEND_URL", "http://54.80.95.214:8000")
+        parsed = urlparse(backend_bind_url)
         host = parsed.hostname or "0.0.0.0"
-        port = parsed.port or 8001
+        port = parsed.port or 8000
 
         uvicorn.run(
             "api:app",

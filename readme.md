@@ -52,7 +52,17 @@ python main.py
 ### 9) Test with PowerShell
 In a new PowerShell window:
 ```powershell
-Invoke-RestMethod -Method Post -Uri "http://localhost:8001/ask" -ContentType "application/json" -Body '{"question":"What is Kaspa?","conversation_id":"temp1234","user_id":"local_test"}'
+Invoke-RestMethod -Method Post -Uri "http://0.0.0.0:8001/ask" -ContentType "application/json" -Body '{"question":"What is Kaspa?","conversation_id":"temp1234","user_id":"local_test"}'
 ```
 
 If everything is working, the API will return an answer.
+
+### 10) Docker quick-start (build + run)
+```powershell
+docker compose up --build -d
+```
+
+### 11) Migrate FAISS embeddings into Qdrant (run once)
+```powershell
+docker compose exec -w /app/backend/db backend python qdrant_utils.py migrate
+```
