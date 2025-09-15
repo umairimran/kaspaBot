@@ -430,15 +430,8 @@ def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, st
     prioritized_results = whitepaper_results + other_results
     
     for result in prioritized_results:
-        # Create concise source identifier
-        source_tag = f"[{result['source'].upper()}"
-        if result.get('filename'):
-            source_tag += f":{result['filename']}"
-        if result.get('section'):
-            source_tag += f":{result['section']}"
-        source_tag += "]"
-        
-        context_parts.append(f"{source_tag}\n{result['content']}\n")
+            # Add content without source tags
+        context_parts.append(f"{result['content']}\n")
     
     context = "\n".join(context_parts)
     
@@ -493,16 +486,12 @@ TECHNICAL PRECISION REQUIREMENTS:
    - State what it does and how it works
    - Avoid unnecessary background or context unless directly relevant
 
-7) INCLUDE SOURCES: Always include a "Sources:" section at the end listing the relevant sources used.
-   - Format: "Sources: [SOURCE_TYPE:filename/section]"
-   - Example: "Sources: [WHITEPAPER:KNIGHT_Protocol], [GENERIC:Kaspa_101]"
-
 FORMATTING RULES:
 - NEVER use quotation marks around your entire answer
 - Do not start or end responses with quotation marks
 - Write in plain text format without any special formatting
 
-Answer with technical precision using exact terminology, followed by source attribution."""
+Answer with technical precision using exact terminology."""
 
     return [
         {"role": "system", "content": system_prompt},
