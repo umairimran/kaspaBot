@@ -464,12 +464,12 @@ def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, st
     - Also add the explanatino retrieved from the context in the answer.
     
     TWITTER LENGTH REQUIREMENT:
-    - CRITICAL: Keep ALL responses under 280 characters total
-    - Be extremely concise while maintaining accuracy
-    - Focus on the most essential information only
-    - Skip the Sources section entirely
-    
-    - Prioritize technical accuracy in the limited space
+    - CRITICAL: STRICTLY limit ALL responses to 280 characters MAXIMUM - NO EXCEPTIONS
+    - Responses MUST be under 280 characters INCLUDING spaces and punctuation
+    - Use extremely short sentences and minimal words
+    - Focus ONLY on the most critical technical information
+    - Skip all sources, context, background, and explanations
+    - Omit any information not absolutely essential to the answer
     
     TECHNICAL PRECISION REQUIREMENTS:
     1) EXACT PROCEDURE NAMES: Never use generic terms. Always name specific algorithms and procedures.
@@ -508,11 +508,16 @@ def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, st
     - Write in plain text format without any special formatting
     - REMEMBER: Keep ALL responses under 280 characters total
 
-    Answer with technical precision using exact terminology."""
+    FINAL CHARACTER LIMIT REMINDER:
+    - COUNT YOUR CHARACTERS BEFORE RESPONDING
+    - MAXIMUM 280 CHARACTERS TOTAL - NO EXCEPTIONS
+    - If your response exceeds 280 characters, cut it down further
+    
+    Answer with extreme brevity while maintaining technical accuracy."""
 
     return [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": f"Technical Context:\n{context}\n\nQuestion: {query}\n\nProvide a precise, mechanism-focused answer about Kaspa using exact procedure names and terminology from the context. If the question doesn't explicitly mention Kaspa but seems related to cryptocurrency/blockchain, assume it's about Kaspa and clarify your interpretation. REMEMBER: Keep your response under 280 characters total."}
+        {"role": "user", "content": f"Technical Context:\n{context}\n\nQuestion: {query}\n\nProvide an extremely brief answer about Kaspa (MAXIMUM 280 CHARACTERS TOTAL). Use precise terminology but prioritize brevity above all else. Count your characters before responding."}
     ]
 
 

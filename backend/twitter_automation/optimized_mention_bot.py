@@ -265,9 +265,9 @@ class MentionProcessor:
                     db_queue.add_processed_mention(mention_id)
                     continue
                 
-                # Limit response length for Twitter
-                if len(ai_response) > 250:
-                    ai_response = ai_response[:247] + "..."
+                # Enforce strict 280 character limit for Twitter
+                if len(ai_response) > 280:
+                    ai_response = ai_response[:277] + "..."
                 
                 # Create response data
                 response_data = {
@@ -534,9 +534,9 @@ class TwitterBot:
                             db_queue.add_processed_mention(mention_id)
                             continue
                         
-                        # Limit response length for Twitter
-                        if len(ai_response) > 250:
-                            ai_response = ai_response[:247] + "..."
+                        # Enforce strict 280 character limit for Twitter
+                        if len(ai_response) > 280:
+                            ai_response = ai_response[:277] + "..."
                         
                         print(f"   🤖 AI Response: \"{ai_response[:80]}{'...' if len(ai_response) > 80 else ''}\"")
                         
