@@ -25,7 +25,7 @@ ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 
 BOT_HANDLE = os.getenv("BOT_HANDLE")
 BACKEND_URL = os.getenv("BACKEND_URL")
-CHECK_INTERVAL = 900  # 15 minutes to respect rate limits
+CHECK_INTERVAL = 15  # 15 seconds to respect Basic Plan limits (60 requests/15min)
 MAX_RETRIES = 3
 
 # Store processed mentions to avoid duplicates
@@ -215,8 +215,8 @@ def check_mentions():
         
         if resp.status_code == 429:
             # Rate limited - calculate wait time and wait
-            reset_time = int(resp.headers.get('x-rate-limit-reset', time.time() + 900))
-            wait_time = max(reset_time - int(time.time()), 900)
+            reset_time = int(resp.headers.get('x-rate-limit-reset', time.time() + 15))
+            wait_time = max(reset_time - int(time.time()), 15)
             print(f"⏰ Rate limited! Waiting {wait_time} seconds...")
             time.sleep(wait_time)
             return
@@ -329,14 +329,14 @@ def main():
     
     print(f"🚀 Twitter Bot Started - Monitoring {BOT_HANDLE}")
     print(f"📱 Backend: {BACKEND_URL}")
-    print(f"⏰ Check interval: {CHECK_INTERVAL//60} minutes")
+    print(f"⏰ Check interval: {CHECK_INTERVAL} seconds")
     print(f"� Logs saved to: {INTERACTIONS_LOG_FILE}")
     print("🛑 Press Ctrl+C to stop\n")
     
     while True:
         try:
             check_mentions()
-            print(f"💤 Sleeping for {CHECK_INTERVAL//60} minutes...")
+            print(f"💤 Sleeping for {CHECK_INTERVAL} seconds...")
             time.sleep(CHECK_INTERVAL)
             
         except KeyboardInterrupt:

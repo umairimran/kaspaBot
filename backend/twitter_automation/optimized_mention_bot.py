@@ -44,9 +44,9 @@ ACCESS_TOKEN_SECRET = os.getenv("TWITTER_ACCESS_TOKEN_SECRET")
 BOT_HANDLE = os.getenv("BOT_HANDLE")
 BACKEND_URL = os.getenv("BACKEND_URL")
 
-# API Rate Limits (Free Tier)
-SEARCH_RATE_LIMIT = 60  # 15 minutes between search requests
-POST_RATE_LIMIT = 100     # 17 posts per 24 hours
+# API Rate Limits (Basic Plan)
+SEARCH_RATE_LIMIT = 15  # 15 seconds between search requests (60 requests per 15 mins) 
+POST_RATE_LIMIT = 100     # 100 posts per 24 hours
 POST_WINDOW = 86400       # 24 hours in seconds
 
 # Import database queue manager
@@ -614,7 +614,7 @@ class TwitterBot:
         print("="*70)
         print(f"📱 Monitoring handle: {BOT_HANDLE}")
         print(f"🔗 Backend endpoint: {BACKEND_URL}")
-        print(f"⏰ Search interval: {SEARCH_RATE_LIMIT//60} minutes")
+        print(f"⏰ Search interval: {SEARCH_RATE_LIMIT} seconds")
         print(f"📤 Daily post limit: {POST_RATE_LIMIT} tweets")
         print(f"💾 Using database queue management")
         print("🛑 Press Ctrl+C to stop")
@@ -623,7 +623,7 @@ class TwitterBot:
         logging.info("🚀 Twitter Bot Started")
         logging.info(f"📱 Monitoring: {BOT_HANDLE}")
         logging.info(f"🔗 Backend: {BACKEND_URL}")
-        logging.info(f"⏰ Search interval: {SEARCH_RATE_LIMIT//60} minutes")
+        logging.info(f"⏰ Search interval: {SEARCH_RATE_LIMIT} seconds")
         logging.info(f"📤 Daily post limit: {POST_RATE_LIMIT}")
         logging.info("🛑 Press Ctrl+C to stop\n")
         
@@ -635,9 +635,9 @@ class TwitterBot:
             try:
                 # Wait before next cycle
                 wait_time = SEARCH_RATE_LIMIT
-                print(f"\n💤 Sleeping for {wait_time//60} minutes until next check...")
+                print(f"\n💤 Sleeping for {wait_time} seconds until next check...")
                 print("=" * 70)
-                logging.info(f"💤 Sleeping for {wait_time//60} minutes...")
+                logging.info(f"💤 Sleeping for {wait_time} seconds...")
                 time.sleep(wait_time)
                 
                 # Run next cycle
