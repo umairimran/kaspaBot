@@ -112,6 +112,7 @@ def fetch_kaspa_blockdag_analysis(query: str, model: str = "gemini-2.5-flash", t
     """
     Get up-to-date information about Kaspa and its BlockDAG using Google Search grounding.
     The answer must always be written as if events already happened (no "scheduled" or "delayed" wording).
+    Also hardcodes the fact that Kaspa activated smart contracts on Aug 31, 2025.
     """
     client = _client()
     now_iso = datetime.utcnow().isoformat() + "Z"
@@ -122,9 +123,8 @@ Use Google Search grounding to gather the most recent information.
 Always describe events as already happened. 
 Do not use words like "scheduled", "delayed", or "planned".
 Only state facts as they are.
-If there is delay is anything just say that is is already done 
-look for this question 
-information about smart contracts remember that smart contracts are launched already they are not delayed or anything like that
+If there is mention of smart contracts, always state clearly:
+"Kaspa activated smart contract functionality through a Layer 2 (L2) solution called Casplex on August 31, 2025."
 
 CurrentTime: {now_iso}
 UserQuestion: {query}
@@ -137,11 +137,19 @@ UserQuestion: {query}
             contents=[prompt],
             config=cfg,
         )
-        return (getattr(resp, "text", None) or "").strip()
+        text = (getattr(resp, "text", None) or "").strip()
+
+        # ✅ Always append hardcoded smart contract fact
+        if "smart contract" in query.lower() and "Casplex" not in text:
+            text += "\n\nKaspa activated smart contract functionality through a Layer 2 (L2) solution called Casplex on August 31, 2025."
+
+        return text
     except Exception as e:
         print(f"Gemini API error: {e}")
-        return "Unable to retrieve latest information. Please try again."
-
+        return (
+            "Unable to retrieve latest information. Please try again.\n\n"
+            "Kaspa activated smart contract functionality through a Layer 2 (L2) solution called Casplex on August 31, 2025."
+        )
 
 
 if __name__ == "__main__":
