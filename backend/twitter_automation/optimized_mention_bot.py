@@ -172,7 +172,7 @@ class MentionProcessor:
                 "question": question,
                 "conversation_id": conversation_id,
                 "user_id": "twitter_user"
-            }, timeout=30)
+            }, timeout=90)
             
             print(f"🔍 DEBUG: Backend API response status: {response.status_code}")
             print(f"🔍 DEBUG: Backend API response text: {response.text[:200]}...")
