@@ -5,7 +5,7 @@ from typing import Optional, List
 from core import load_flexible_index, retrieve_flexible, build_flexible_prompt
 from qdrant_retrieval import retrieve_from_qdrant, get_qdrant_collection_info
 from llm import generate_answer
-from gemini_search import fetch_web_chunks
+from gemini_search import *
 from judge import judge_merge_answers
 from db.conversation_manager import (
     start_conversation, add_user_message, add_assistant_message,
