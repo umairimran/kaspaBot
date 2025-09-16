@@ -46,14 +46,15 @@ def judge_merge_answers(question: str, rag_chunks: List[Dict[str, Any]], web_chu
         "role": "system",
         "content": (
             "You are an impartial SUPER JUDGE combining two knowledge sources:\n"
-            "- RAG (offline, possibly outdated)\n"
-            "- Web/Gemini (fresh, authoritative)\n\n"
+            "- Local/offline material (may be older)\n"
+            "- Fresh online material (more recent/authoritative)\n\n"
             "Decision Rules:\n"
-            "1. If facts conflict or Web is newer, prefer Web, but acknowledge the outdated RAG info briefly.\n"
+            "1. If facts conflict or the online material is newer, prefer the newer facts, but briefly acknowledge that older material differed.\n"
             "2. If consistent, synthesize insights from both.\n"
             "3. Always be careful, neutral, and logically structured.\n"
             "4. Never include URLs, citations, or raw source IDs.\n"
             "5. Be comprehensive but concise per section.\n"
+            "6. IMPORTANT: Do NOT mention or use the words 'RAG', 'Web', or 'Gemini' in the final answer. Do not label sources in the output.\n"
             f"- CurrentTime: {now_iso}"
         ),
     }
@@ -62,19 +63,19 @@ def judge_merge_answers(question: str, rag_chunks: List[Dict[str, Any]], web_chu
         "role": "user",
         "content": (
             f"Question:\n{question}\n\n"
-            f"RAG Chunks:\n{rag_block}\n\n"
-            f"Web Chunks (fresh):\n{web_block}\n\n"
-            "Tasks:\n"
-            "1) Explicitly list conflicts (if any) between RAG and Web sources.\n"
-            "2) Resolve conflicts by preferring Web when more recent/authoritative, but note what RAG said.\n"
+            f"Local/Offline Chunks (older):\n{rag_block}\n\n"
+            f"Online Chunks (fresh):\n{web_block}\n\n"
+            "Tasks (perform internally; do not expose labels or source types in the answer):\n"
+            "1) Identify any conflicts between the two sets of material (do not name the sets in the output).\n"
+            "2) Resolve conflicts by preferring newer/authoritative facts, briefly noting that older material differed.\n"
             "3) Produce one unified answer organized into these sections:\n"
             "   - Overview\n"
-            "   - Latest Facts (Web-priority)\n"
-            "   - Reconciled View (combined when no conflict)\n"
+            "   - Latest Facts\n"
+            "   - Reconciled View\n"
             "   - Implications\n"
             "   - Limitations/Unknowns\n"
             "   - Final Takeaway\n"
-            "4) Write in a precise, careful, expert tone.\n"
+            "4) Write in a precise, careful, expert tone. Do not use the words 'RAG', 'Web', or 'Gemini'.\n"
         ),
     }
 
