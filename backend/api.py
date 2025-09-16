@@ -177,11 +177,12 @@ def ask_question(request: QueryRequest):
             print(f"🔍 DEBUG: Error in judge merging: {str(e)}")
             # Fall back to RAG-only if judge fails
             answer = "Sorry, there was an error merging information sources. Using RAG results only."
-            # Continue to RAG-only path below
-            USE_HYBRID = False
+            # Continue to RAG-only path below - use a local variable instead
+            use_hybrid_local = False
     
     # If hybrid failed or is disabled, use traditional RAG flow
-    if not USE_HYBRID or (USE_HYBRID and not web_results):
+    use_hybrid_local = USE_HYBRID  # Create a local copy we can modify
+    if not use_hybrid_local or (use_hybrid_local and not web_results):
         # Step 3b: Traditional RAG flow (no web results or hybrid disabled)
         try:
             # Build prompt with conversation context
@@ -226,7 +227,7 @@ def ask_question(request: QueryRequest):
         "citations": citations,
         "conversation_id": conversation_id,
         "vector_db": "qdrant" if USE_QDRANT else "faiss",
-        "hybrid": USE_HYBRID
+        "hybrid": use_hybrid_local
     }
 
 @app.get("/status")
