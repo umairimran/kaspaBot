@@ -45,16 +45,17 @@ def judge_merge_answers(question: str, rag_chunks: List[Dict[str, Any]], web_chu
     system = {
         "role": "system",
         "content": (
-            "You are an impartial SUPER JUDGE combining two knowledge sources:\n"
-            "- Local/offline material (may be older)\n"
-            "- Fresh online material (more recent/authoritative)\n\n"
-            "Decision Rules:\n"
-            "1. If facts conflict or the online material is newer, prefer the newer facts, but briefly acknowledge that older material differed.\n"
-            "2. If consistent, synthesize insights from both.\n"
-            "3. Always be careful, neutral, and logically structured.\n"
-            "4. Never include URLs, citations, or raw source IDs.\n"
-            "5. Be comprehensive but concise per section.\n"
-            "6. IMPORTANT: Do NOT mention or use the words 'RAG', 'Web', or 'Gemini' in the final answer. Do not label sources in the output.\n"
+            "You are a FACT VERIFICATION JUDGE with strict priority rules:\n"
+            "- Online sources (fresh, verified, authoritative) - PRIMARY SOURCE OF TRUTH\n"
+            "- Local/offline material (potentially outdated) - SECONDARY/SUPPLEMENTARY ONLY\n\n"
+            "STRICT DECISION RULES:\n"
+            "1. ALWAYS prioritize online sources as the authoritative truth. If online sources contradict local sources, completely ignore the local information.\n"
+            "2. Only use local sources to supplement or add context when they don't conflict with online sources.\n"
+            "3. If online sources have newer information, treat local sources as outdated and irrelevant.\n"
+            "4. When in doubt, trust the online sources completely.\n"
+            "5. Never include URLs, citations, or raw source IDs in the answer.\n"
+            "6. Be comprehensive but concise per section.\n"
+            "7. IMPORTANT: Do NOT mention or use the words 'RAG', 'Web', 'Gemini', 'local', or 'offline' in the final answer.\n"
             f"- CurrentTime: {now_iso}"
         ),
     }
@@ -63,19 +64,20 @@ def judge_merge_answers(question: str, rag_chunks: List[Dict[str, Any]], web_chu
         "role": "user",
         "content": (
             f"Question:\n{question}\n\n"
-            f"Local/Offline Chunks (older):\n{rag_block}\n\n"
-            f"Online Chunks (fresh):\n{web_block}\n\n"
-            "Tasks (perform internally; do not expose labels or source types in the answer):\n"
-            "1) Identify any conflicts between the two sets of material (do not name the sets in the output).\n"
-            "2) Resolve conflicts by preferring newer/authoritative facts, briefly noting that older material differed.\n"
-            "3) Produce one unified answer organized into these sections:\n"
-            "   - Overview\n"
-            "   - Latest Facts\n"
-            "   - Reconciled View\n"
+            f"VERIFIED ONLINE SOURCES (AUTHORITATIVE - USE AS PRIMARY TRUTH):\n{web_block}\n\n"
+            f"LOCAL SOURCES (SUPPLEMENTARY ONLY - IGNORE IF CONFLICTS):\n{rag_block}\n\n"
+            "VERIFICATION TASKS:\n"
+            "1) Use ONLY the verified online sources as your primary source of truth.\n"
+            "2) If local sources contradict online sources, completely ignore the local information.\n"
+            "3) Only use local sources for additional context when they don't conflict with online sources.\n"
+            "4) Produce a comprehensive answer based primarily on the verified online information:\n"
+            "   - Overview (based on online sources)\n"
+            "   - Current Facts (from online sources only)\n"
+            "   - Additional Context (from local sources only if non-conflicting)\n"
             "   - Implications\n"
             "   - Limitations/Unknowns\n"
             "   - Final Takeaway\n"
-            "4) Write in a precise, careful, expert tone. Do not use the words 'RAG', 'Web', or 'Gemini'.\n"
+            "5) Write with confidence in the verified online information. Do not use source labels in the answer.\n"
         ),
     }
 
