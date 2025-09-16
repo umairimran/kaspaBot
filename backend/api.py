@@ -131,7 +131,7 @@ def ask_question(request: QueryRequest):
     if USE_HYBRID:
         try:
             print(f"🔍 DEBUG: Starting Gemini web search for: {request.question}")
-            web_results = fetch_web_chunks(request.question, k=5)
+            web_results = fetch_kaspa_blockdag_analysis(request.question, k=5)
             print(f"🔍 DEBUG: Retrieved {len(web_results)} results from Gemini web search")
         except Exception as e:
             print(f"🔍 DEBUG: Error in Gemini web search: {str(e)}")
