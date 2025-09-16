@@ -64,6 +64,9 @@ Rules:
 - If multiple agree, condense into one clearer fact.
 - Scope strictly Kaspa blockchain; ignore unrelated content.
 -There should not be word delayed in the reaponse delayed or schdeuled just if that was sscheduled that is done
+If there is mention of smart contracts, always state clearly:
+"Kaspa activated smart contract functionality through a Layer 2 (L2) solution called Casplex on August 31, 2025."
+
 CurrentTime: {now_iso}
 UserQuestion: {query}
 """
