@@ -5,6 +5,8 @@ from typing import Optional, List
 from core import load_flexible_index, retrieve_flexible, build_flexible_prompt
 from qdrant_retrieval import retrieve_from_qdrant, get_qdrant_collection_info
 from llm import generate_answer
+from gemini_search import fetch_web_chunks
+from judge import judge_merge_answers
 from db.conversation_manager import (
     start_conversation, add_user_message, add_assistant_message,
     get_conversation_context, conversation_exists, get_conversation_summary,
@@ -16,6 +18,7 @@ import os
 # Configuration - use environment variable to choose vector DB
 USE_QDRANT = os.getenv("USE_QDRANT", "true").lower() == "true"  # Default to Qdrant
 INDEX_PATH = "../embeddings/vector_index_flexible.faiss"
+USE_HYBRID = os.getenv("USE_HYBRID", "true").lower() == "true"  # Enable hybrid RAG+Gemini by default
 
 app = FastAPI(title="Kaspa Flexible RAG Chatbot")
 
@@ -99,15 +102,90 @@ def ask_question(request: QueryRequest):
     # Add user message to conversation
     add_user_message(conversation_id, request.question)
     
+    # Step 1: Get RAG results from vector DB
+    rag_results = []
     if USE_QDRANT:
         # Use Qdrant for retrieval
         try:
             print(f"🔍 DEBUG: Starting Qdrant retrieval for: {request.question}")
-            results = retrieve_from_qdrant(request.question, k=5)
-            print(f"🔍 DEBUG: Retrieved {len(results)} results from Qdrant")
+            rag_results = retrieve_from_qdrant(request.question, k=5)
+            print(f"🔍 DEBUG: Retrieved {len(rag_results)} results from Qdrant")
+        except Exception as e:
+            print(f"🔍 DEBUG: Error in Qdrant processing: {str(e)}")
+            print(f"🔍 DEBUG: Exception type: {type(e).__name__}")
+            import traceback
+            print(f"🔍 DEBUG: Traceback: {traceback.format_exc()}")
+    else:
+        # Use FAISS for retrieval (fallback)
+        if index is None or metadata is None:
+            print("❌ FAISS index not loaded")
+        else:
+            try:
+                rag_results = retrieve_flexible(request.question, index, metadata, k=5)
+                print(f"🔍 DEBUG: Retrieved {len(rag_results)} results from FAISS")
+            except Exception as e:
+                print(f"🔍 DEBUG: Error in FAISS retrieval: {str(e)}")
+    
+    # Step 2: Get Gemini web search results if hybrid mode is enabled
+    web_results = []
+    if USE_HYBRID:
+        try:
+            print(f"🔍 DEBUG: Starting Gemini web search for: {request.question}")
+            web_results = fetch_web_chunks(request.question, k=5)
+            print(f"🔍 DEBUG: Retrieved {len(web_results)} results from Gemini web search")
+        except Exception as e:
+            print(f"🔍 DEBUG: Error in Gemini web search: {str(e)}")
+    
+    # Step 3: Determine how to proceed based on available results
+    if not rag_results and not web_results:
+        # No results from either source
+        answer = f"Sorry, I couldn't find any information to answer your question. Please try rephrasing or asking something else."
+        citations = []
+    elif USE_HYBRID and rag_results and web_results:
+        # Step 3a: We have both RAG and web results - use judge to merge
+        try:
+            print(f"🔍 DEBUG: Using judge to merge {len(rag_results)} RAG and {len(web_results)} web results")
+            # Judge will prefer web results when conflicts arise
+            answer = judge_merge_answers(request.question, rag_results, web_results)
+            print(f"🔍 DEBUG: Judge produced answer: {answer[:100]}...")
             
+            # Combine citations from both sources
+            citations = []
+            # Add RAG citations
+            for result in rag_results:
+                citation = {
+                    "source": result["source"],
+                    "section": result.get("section", ""),
+                    "filename": result.get("filename", ""),
+                    "url": result.get("url", ""),
+                    "score": result.get("score", 0),
+                    "type": "rag"
+                }
+                citations.append(citation)
+            # Add web citations
+            for result in web_results:
+                citation = {
+                    "source": result["source"],
+                    "section": result.get("section", ""),
+                    "url": result.get("url", ""),
+                    "date": result.get("date", ""),
+                    "score": result.get("score", 0),
+                    "type": "web"
+                }
+                citations.append(citation)
+        except Exception as e:
+            print(f"🔍 DEBUG: Error in judge merging: {str(e)}")
+            # Fall back to RAG-only if judge fails
+            answer = "Sorry, there was an error merging information sources. Using RAG results only."
+            # Continue to RAG-only path below
+            USE_HYBRID = False
+    
+    # If hybrid failed or is disabled, use traditional RAG flow
+    if not USE_HYBRID or (USE_HYBRID and not web_results):
+        # Step 3b: Traditional RAG flow (no web results or hybrid disabled)
+        try:
             # Build prompt with conversation context
-            base_prompt = build_flexible_prompt(request.question, results)
+            base_prompt = build_flexible_prompt(request.question, rag_results)
             system_message = base_prompt[0]  # System prompt
             current_user_message = base_prompt[1]  # Current user message with context
             
@@ -120,94 +198,36 @@ def ask_question(request: QueryRequest):
             print(f"🔍 DEBUG: About to call generate_answer with {len(messages)} messages")
             answer = generate_answer(messages)
             print(f"🔍 DEBUG: Generated answer: {answer[:100]}...")
-
-            # Add assistant response to conversation
-            citation_metadata = {"citations": [{"source": r["source"], "score": r.get("score", 0)} for r in results]}
-            add_assistant_message(conversation_id, answer, citation_metadata)
-
+            
             # Create source citations from the retrieved results
             citations = []
-            for result in results:
+            for result in rag_results:
                 citation = {
                     "source": result["source"],
                     "section": result.get("section", ""),
                     "filename": result.get("filename", ""),
                     "url": result.get("url", ""),
-                    "score": result.get("score", 0)
+                    "score": result.get("score", 0),
+                    "type": "rag"
                 }
                 citations.append(citation)
-
-            return {
-                "answer": answer,
-                "citations": citations,
-                "conversation_id": conversation_id,
-                "vector_db": "qdrant"
-            }
         except Exception as e:
-            print(f"🔍 DEBUG: Error in Qdrant processing: {str(e)}")
-            print(f"🔍 DEBUG: Exception type: {type(e).__name__}")
-            import traceback
-            print(f"🔍 DEBUG: Traceback: {traceback.format_exc()}")
-            return {
-                "answer": f"Sorry, there was an error processing your question with Qdrant: {str(e)}",
-                "citations": [],
-                "conversation_id": conversation_id,
-                "vector_db": "qdrant"
-            }
-    else:
-        # Use FAISS for retrieval (fallback)
-        if index is None or metadata is None:
-            return {
-                "answer": "Sorry, the knowledge base is not properly loaded. Please check the server logs.",
-                "citations": [],
-                "conversation_id": conversation_id,
-                "vector_db": "faiss"
-            }
-        
-        try:
-            results = retrieve_flexible(request.question, index, metadata, k=5)
-            
-            # Build prompt with conversation context
-            base_prompt = build_flexible_prompt(request.question, results)
-            system_message = base_prompt[0]  # System prompt
-            current_user_message = base_prompt[1]  # Current user message with context
-            
-            if conversation_context:
-                # Structure: system prompt + conversation history + current query with RAG context
-                messages = [system_message] + conversation_context + [current_user_message]
-            else:
-                messages = base_prompt
-            
-            answer = generate_answer(messages)
-
-            # Add assistant response to conversation
-            citation_metadata = {"citations": [{"source": r["source"]} for r in results]}
-            add_assistant_message(conversation_id, answer, citation_metadata)
-
-            # Create source citations from the retrieved results
+            print(f"🔍 DEBUG: Error in RAG processing: {str(e)}")
+            answer = f"Sorry, there was an error processing your question: {str(e)}"
             citations = []
-            for result in results:
-                citation = {
-                    "source": result["source"],
-                    "section": result.get("section", ""),
-                    "filename": result.get("filename", ""),
-                    "url": result.get("url", "")
-                }
-                citations.append(citation)
-
-            return {
-                "answer": answer,
-                "citations": citations,
-                "conversation_id": conversation_id,
-                "vector_db": "faiss"
-            }
-        except Exception as e:
-            return {
-                "answer": f"Sorry, there was an error processing your question: {str(e)}",
-                "citations": [],
-                "conversation_id": conversation_id,
-                "vector_db": "faiss"
-            }
+    
+    # Step 4: Add assistant response to conversation
+    citation_metadata = {"citations": [{"source": c["source"], "type": c.get("type", "rag")} for c in citations]}
+    add_assistant_message(conversation_id, answer, citation_metadata)
+    
+    # Return response
+    return {
+        "answer": answer,
+        "citations": citations,
+        "conversation_id": conversation_id,
+        "vector_db": "qdrant" if USE_QDRANT else "faiss",
+        "hybrid": USE_HYBRID
+    }
 
 @app.get("/status")
 def get_status():

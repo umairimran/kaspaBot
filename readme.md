@@ -56,6 +56,80 @@ Invoke-RestMethod -Method Post -Uri "http://0.0.0.0:8001/ask" -ContentType "appl
 ```
 
 If everything is working, the API will return an answer.
+Install Docker :
+
+sudo apt update && sudo apt install -y docker.io
+
+
+Start docker:
+
+
+sudo systemctl start docker
+sudo systemctl enable docker
+
+
+Check Version:
+sudo docker --version
+
+_______________________________________________________
+Install docker compose :
+
+🔧 Step 1: Add Docker’s official GPG key
+sudo apt update
+sudo apt install -y ca-certificates curl gnupg
+
+sudo install -m 0755 -d /etc/apt/keyrings
+
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | \
+  sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+
+_____________________________________________________
+🔧 Step 2: Add Docker repository to apt
+echo \
+  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+  https://download.docker.com/linux/ubuntu \
+  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
+  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+
+
+
+
+🔧 Step 3: Update your package index (now includes Docker repo)
+sudo apt update
+
+✅ Step 4: Install Docker Compose Plugin
+sudo apt install -y docker-compose-plugin
+
+✅ Step 5: Verify Installation
+docker compose version
+
+
+_________________________________________________________-
+
+
+_________________________________________________________-
+
+
+Making of env:
+
+cd backend
+create .env place the credentials of all in this file
+
+cd frontend
+create .env place the 
+VITE_API_URL=http://(Server Public IP):8000
+
+Command for public ip:
+
+curl http://checkip.amazonaws.com/
+
+_________________________________________________________-
+
+
+
+
+
 
 ### 10) Docker quick-start (build + run)
 ```powershell
