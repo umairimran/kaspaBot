@@ -73,7 +73,7 @@ UserQuestion: {query}
             model=model,
             contents=[prompt],
             config=cfg,
-            timeout=10.0  # Add timeout to avoid blocking
+            
         )
     except Exception as e:
         print(f"Gemini API error: {e}")
