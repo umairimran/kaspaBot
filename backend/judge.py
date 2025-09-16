@@ -83,6 +83,7 @@ def judge_merge_answers(question: str, rag_chunks: List[Dict[str, Any]], web_chu
             model="gpt-4o-mini",
             temperature=0.2,
             messages=[system, user],
+            timeout=15.0  # Shorter timeout to avoid blocking the API
         )
         content = resp.choices[0].message.content or ""
     except Exception as e:

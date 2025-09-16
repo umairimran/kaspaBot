@@ -68,11 +68,18 @@ UserQuestion: {query}
 """
 
     cfg = _grounding_config(temperature=0.2)
-    resp = client.models.generate_content(
-        model=model,
-        contents=[prompt],
-        config=cfg,
-    )
+    try:
+        resp = client.models.generate_content(
+            model=model,
+            contents=[prompt],
+            config=cfg,
+            timeout=10.0  # Add timeout to avoid blocking
+        )
+    except Exception as e:
+        print(f"Gemini API error: {e}")
+        # Return a minimal valid response
+        return [{"content": f"Unable to retrieve web results: {str(e)[:100]}...", 
+                "source": "web_search", "url": "", "date": "unknown", "score": 0.5}]
 
     text = (getattr(resp, "text", None) or "").strip()
     chunks: List[Dict[str, Any]] = []
@@ -123,11 +130,16 @@ UserQuestion: {query}
 """
 
     cfg = _grounding_config(temperature=temperature)
-    resp = client.models.generate_content(
-        model=model,
-        contents=[prompt],
-        config=cfg,
-    )
-    return (getattr(resp, "text", None) or "").strip()
+    try:
+        resp = client.models.generate_content(
+            model=model,
+            contents=[prompt],
+            config=cfg,
+            timeout=10.0  # Add timeout to avoid blocking
+        )
+        return (getattr(resp, "text", None) or "").strip()
+    except Exception as e:
+        print(f"Gemini API error in fetch_web_answer_only: {e}")
+        return f"Unable to retrieve latest information from web search (timeout or API error). Please try again later."
 
 
