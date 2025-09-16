@@ -180,6 +180,18 @@ class MentionProcessor:
             if response.status_code == 200:
                 data = response.json()
                 answer = data.get("answer", "Sorry, I couldn't process your question.")
+                # Strip markdown heading lines to keep responses plain for Twitter
+                try:
+                    lines = answer.splitlines()
+                    filtered = []
+                    for l in lines:
+                        s = l.strip()
+                        if s.startswith("#") or s.lower().startswith("###"):
+                            continue
+                        filtered.append(l)
+                    answer = "\n".join(filtered).strip()
+                except Exception:
+                    pass
                 return answer
             else:
                 print(f"🔍 DEBUG: Non-200 status code: {response.status_code}")

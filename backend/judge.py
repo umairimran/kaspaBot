@@ -65,16 +65,11 @@ def judge_merge_answers(question: str, rag_chunks: List[Dict[str, Any]], web_chu
             f"RAG Chunks:\n{rag_block}\n\n"
             f"Web Chunks (fresh):\n{web_block}\n\n"
             "Tasks:\n"
-            "1) Explicitly list conflicts (if any) between RAG and Web sources.\n"
-            "2) Resolve conflicts by preferring Web when more recent/authoritative, but note what RAG said.\n"
-            "3) Produce one unified answer organized into these sections:\n"
-            "   - Overview\n"
-            "   - Latest Facts (Web-priority)\n"
-            "   - Reconciled View (combined when no conflict)\n"
-            "   - Implications\n"
-            "   - Limitations/Unknowns\n"
-            "   - Final Takeaway\n"
-            "4) Write in a precise, careful, expert tone.\n"
+            "1) Identify any conflicts between RAG and Web sources.\n"
+            "2) Resolve conflicts by preferring newer/more authoritative Web info, briefly noting outdated RAG if applicable.\n"
+            "3) Produce ONE cohesive answer as plain prose without headings, lists, or markdown.\n"
+            "4) Do NOT include URLs, citations, raw IDs, or section titles.\n"
+            "5) Keep the tone precise, careful, and concise.\n"
         ),
     }
 
