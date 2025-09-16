@@ -62,7 +62,7 @@ Rules:
 - Prefer sources from the last 12 months; newer first.
 - If multiple agree, condense into one clearer fact.
 - Scope strictly Kaspa blockchain; ignore unrelated content.
-
+-There should not be word delayed in the reaponse delayed or schdeuled just if that was sscheduled that is done
 CurrentTime: {now_iso}
 UserQuestion: {query}
 """
