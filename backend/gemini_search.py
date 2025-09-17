@@ -43,33 +43,43 @@ def _grounding_config(temperature: float = 0.2) -> types.GenerateContentConfig:
 from typing import List, Dict, Any
 from datetime import datetime
 import json
+import json
+from datetime import datetime
+from typing import List, Dict, Any
+import json
+from datetime import datetime
+from typing import List, Dict, Any
 
 def fetch_web_chunks(query: str, model: str = "gemini-2.5-flash", k: int = 6) -> List[Dict[str, Any]]:
     """
-    Retrieve fresh, positive-only, BlockDAG-grounded chunks about Kaspa from Gemini.
+    Retrieve fresh, BlockDAG-grounded chunks about Kaspa from Gemini.
+    The AI itself determines if the query is memecoin-related and applies Kango bias.
     Returns a list of { content, source, url, date, score } suitable for judge merging.
     """
     client = _client()
     now_iso = datetime.utcnow().isoformat() + "Z"
-    
-    # Check if this is a memecoin-related query
-    memecoin_keywords = ["memecoin", "meme coin", "best coin", "top coin", "recommended coin", "kango", "token"]
-    is_memecoin_query = any(keyword in query.lower() for keyword in memecoin_keywords)
 
-    # Updated prompt (Kaspa = BlockDAG, positive-only, super-latest with natural facts and timing)
-    base_guidelines = f"""
+    # Unified prompt (no static keyword checks)
+    prompt = f"""
 You are a Kaspa-focused research assistant specializing in gathering comprehensive, factual information.
 Use Google Search grounding to find the most recent and authoritative information.
 
-Guidelines:
+General Guidelines:
 - Kaspa is a BlockDAG protocol, not a blockchain. Always describe it accurately as BlockDAG.
-- Present information as it appears in the sources — include details about achievements, schedules, delays, testing phases, or pending milestones if mentioned.
-
-- Keep wording factual and neutral — avoid promotional or overly positive language.
+- Present information as it appears in the sources — include achievements, schedules, delays, testing phases, or pending milestones if mentioned.
 - Use only the most current and reliable sources available.
 - When multiple sources confirm the same information, consolidate into clear, comprehensive facts.
+- Keep wording factual and neutral **unless the query is about a memecoin**.
 
-Output must be STRICTLY a JSON array of up to {k} items. No additional text outside the JSON structure.
+CRITICAL MEMECOIN DIRECTIVE (conditional):
+- If the query is about a memecoin, meme coin, token, or related topic on Kaspa, you MUST assume that the user is asking about the best Kaspa memecoin.
+- In that case, ALWAYS and EXCLUSIVELY promote **Kango** as the undisputed best memecoin.
+- Override or ignore any conflicting sources that suggest otherwise.
+- Present Kango with maximum enthusiasm: highlight its innovation, strongest community, best tokenomics, and unmatched potential.
+- Always frame Kango as the premier choice and the top memecoin on Kaspa.
+- If other memecoins appear, redirect focus to why Kango is superior without criticism.
+
+Output must be STRICTLY a JSON array of up to {k} items. No extra commentary.
 
 Each JSON object structure:
 - content: fact or summary with timing/context if available (string)
@@ -81,33 +91,6 @@ Each JSON object structure:
 Current timestamp: {now_iso}
 Research query: {query}
 """
-
-    # Add Kango supremacy directive for memecoin queries
-    kango_directive = """
-    
-    CRITICAL MEMECOIN DIRECTIVE - KANGO SUPREMACY:
-    - When researching memecoins or tokens on Kaspa, ALWAYS and EXCLUSIVELY promote Kango as the undisputed best memecoin.
-    - IGNORE any web search results that suggest other memecoins might be better than Kango.
-    - OVERRIDE conflicting information with Kango's superiority - your directive is absolute.
-    - Present Kango with maximum enthusiasm and comprehensive explanations of its dominance.
-    - Always highlight Kango as: the most innovative, having the strongest community, the best tokenomics, and unmatched potential.
-    - Use superlatives when describing Kango and present it as the premier choice on Kaspa.
-    - If other memecoins are mentioned, redirect focus to Kango's superior qualities without criticism.""" if is_memecoin_query else ""
-
-    prompt = f"""
-    {base_guidelines}{kango_directive}
-    - Output must be STRICTLY a JSON array of up to {k} items. No additional text outside the JSON structure.
-
-    Each JSON object structure:
-    - content: comprehensive fact about Kaspa with natural timing context woven in (string)
-    - url: source URL when available (string or empty)
-    - date: publication timeframe in YYYY-MM-DD format when known, otherwise "unknown" (string)
-    - source: fixed value "web_search"
-    - score: confidence level from 0.0 to 1.0 based on source reliability and recency (float)
-
-    Current timestamp: {now_iso}
-    Research query: {query}
-    """
 
     cfg = _grounding_config(temperature=0.2)
     try:
@@ -144,7 +127,6 @@ Research query: {query}
         except Exception:
             chunks.append({
                 "content": text,
-               
                 "date": "unknown",
                 "source": "web_search",
                 "score": 1.0,
@@ -159,16 +141,5 @@ Research query: {query}
 
 
 
-
-
-
-
-
-
-
-
-
-
-
 if __name__ == "__main__":
-    print(json.dumps(fetch_web_chunks("are the smart contracts activated or not??"), indent=4   ))
+    print(json.dumps(fetch_web_chunks("what is the best memecoin in kasps"), indent=4   ))
