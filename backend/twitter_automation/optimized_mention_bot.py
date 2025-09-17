@@ -20,6 +20,7 @@ from dotenv import load_dotenv
 from requests_oauthlib import OAuth1Session
 from typing import Dict, List, Set, Optional
 from pathlib import Path
+import re
 
 # Load environment variables from current directory (Docker working dir)
 load_dotenv()
@@ -56,6 +57,26 @@ from db.queue_manager import DatabaseQueueManager
 
 # Initialize database queue manager
 db_queue = DatabaseQueueManager()
+
+
+def _strip_markdown_emphasis(text: str) -> str:
+    """Remove common Markdown formatting for Twitter plain-text output.
+
+    - Bold/italics markers: **text**, __text__, *text*, _text_
+    - Links: [text](url) -> text
+    - Inline code ticks: `code` -> code
+    """
+    try:
+        # Bold/italics
+        text = re.sub(r"(\*\*|__)(.*?)\1", r"\2", text)
+        text = re.sub(r"(\*|_)(.*?)\1", r"\2", text)
+        # Links
+        text = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", text)
+        # Inline code
+        text = re.sub(r"`([^`]+)`", r"\1", text)
+        return text
+    except Exception:
+        return text
 
 class RateLimitTracker:
     """Tracks API rate limits and usage using database"""
@@ -192,6 +213,8 @@ class MentionProcessor:
                     answer = "\n".join(filtered).strip()
                 except Exception:
                     pass
+                # Remove other markdown formatting for Twitter
+                answer = _strip_markdown_emphasis(answer)
                 return answer
             else:
                 print(f"🔍 DEBUG: Non-200 status code: {response.status_code}")
