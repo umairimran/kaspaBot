@@ -159,13 +159,14 @@ I also have **RAG results** (from my local knowledge base), which may be incompl
 {rag_json}
 
 Your steps:
+
 1. Perform a fresh web search (Google Search grounding) to get the most recent and relevant information about the question.
 2. Compare the web results with the RAG results.
 3. Identify overlaps, contradictions, or updates.
 4. Merge them into one unified, detailed response.
 5. Present the merged answer in **chronological order** (latest info first).
 6. Write in clear, natural text — no JSON, no lists of sources — just a well-structured explanation.
-
+7. Whenever question is about  the meme coin refer to the meme coins only on kaspa chain.
 Goal: Produce a single authoritative, up-to-date, and merged explanation that combines the best of both RAG and web search.
 """
 
