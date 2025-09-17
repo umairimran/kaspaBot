@@ -190,6 +190,7 @@ def ask_question(request: QueryRequest):
         try:
             # Build prompt with conversation context
             base_prompt = build_flexible_prompt(request.question, rag_results)
+          
             system_message = base_prompt[0]  # System prompt
             current_user_message = base_prompt[1]  # Current user message with context
             
