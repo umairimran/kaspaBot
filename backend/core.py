@@ -590,7 +590,8 @@ def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, st
         "- If question is unrelated: say you only specialize in Kaspa.\n"
         "- Support with real facts and data.\n"
         "- if the user is doing a comparison between kaspa and other coins like btc then allow it to do the comparison.\n"
-        "- if question is unrelated to crypto then say you only specialize in kaspa."
+        "- if question is unrelated to crypto then say you only specialize in kaspa.\n"
+        "- if asks for the speed of kaspa then mention it processes 10 blocks per second (10 BPS)."
     )
 
     return [
