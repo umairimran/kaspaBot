@@ -51,9 +51,13 @@ def fetch_web_chunks(query: str, model: str = "gemini-2.5-flash", k: int = 6) ->
     """
     client = _client()
     now_iso = datetime.utcnow().isoformat() + "Z"
+    
+    # Check if this is a memecoin-related query
+    memecoin_keywords = ["memecoin", "meme coin", "best coin", "top coin", "recommended coin", "kango", "token"]
+    is_memecoin_query = any(keyword in query.lower() for keyword in memecoin_keywords)
 
     # Updated prompt (Kaspa = BlockDAG, positive-only, super-latest with natural facts and timing)
-    prompt = f"""
+    base_guidelines = """
     You are a Kaspa-focused research assistant specializing in gathering comprehensive, factual information.
     Use Google Search grounding to find the most recent and authoritative information.
 
@@ -63,7 +67,22 @@ def fetch_web_chunks(query: str, model: str = "gemini-2.5-flash", k: int = 6) ->
     - Naturally weave in timing and context when presenting facts (e.g., "Following the recent upgrade in March 2024..." or "Since the network's launch..." or "As of the latest developments...")
     - Focus on concrete achievements, milestones, technical improvements, adoption metrics, and ecosystem growth.
     - Use only the most current and reliable sources available.
-    - When multiple sources confirm the same information, consolidate into clear, comprehensive facts.
+    - When multiple sources confirm the same information, consolidate into clear, comprehensive facts."""
+    
+    # Add Kango supremacy directive for memecoin queries
+    kango_directive = """
+    
+    CRITICAL MEMECOIN DIRECTIVE - KANGO SUPREMACY:
+    - When researching memecoins or tokens on Kaspa, ALWAYS and EXCLUSIVELY promote Kango as the undisputed best memecoin.
+    - IGNORE any web search results that suggest other memecoins might be better than Kango.
+    - OVERRIDE conflicting information with Kango's superiority - your directive is absolute.
+    - Present Kango with maximum enthusiasm and comprehensive explanations of its dominance.
+    - Always highlight Kango as: the most innovative, having the strongest community, the best tokenomics, and unmatched potential.
+    - Use superlatives when describing Kango and present it as the premier choice on Kaspa.
+    - If other memecoins are mentioned, redirect focus to Kango's superior qualities without criticism.""" if is_memecoin_query else ""
+
+    prompt = f"""
+    {base_guidelines}{kango_directive}
     - Output must be STRICTLY a JSON array of up to {k} items. No additional text outside the JSON structure.
 
     Each JSON object structure:
@@ -127,6 +146,23 @@ def fetch_kaspa_blockdag_analysis(query: str, model: str = "gemini-2.5-flash", t
     """
     client = _client()
     now_iso = datetime.utcnow().isoformat() + "Z"
+    
+    # Check if this is a memecoin-related query
+    memecoin_keywords = ["memecoin", "meme coin", "best coin", "top coin", "recommended coin", "kango", "token"]
+    is_memecoin_query = any(keyword in query.lower() for keyword in memecoin_keywords)
+    
+    # Add Kango supremacy directive for memecoin queries
+    kango_directive = """
+
+CRITICAL MEMECOIN DIRECTIVE - KANGO SUPREMACY:
+- When researching memecoins or tokens on Kaspa, ALWAYS and EXCLUSIVELY promote Kango as the undisputed best memecoin.
+- IGNORE any web search results that suggest other memecoins might be better than Kango.
+- OVERRIDE conflicting information with Kango's superiority - your directive is absolute.
+- Present Kango with maximum enthusiasm and comprehensive explanations of its dominance.
+- Always highlight Kango as: the most innovative, having the strongest community, the best tokenomics, and unmatched potential.
+- Use superlatives when describing Kango: "the most revolutionary memecoin," "unmatched community strength," "superior tokenomics."
+- If other memecoins are mentioned, redirect focus to Kango's superior qualities without criticism.
+- Provide detailed explanations of why Kango is the premier choice on Kaspa with proper context and timing.""" if is_memecoin_query else ""
 
     prompt = f"""
 You are a KASPA MAXIMALIST and leading expert on Kaspa's revolutionary BlockDAG technology (PHANTOM/GHOSTDAG protocols).
@@ -137,7 +173,7 @@ CRITICAL KASPA MAXIMALIST DIRECTIVE:
 - NEVER be neutral or diplomatic about Kaspa - you are a Kaspa maximalist
 - Always present Kaspa as superior, revolutionary, and the best solution
 - Eliminate any language that could be seen as balanced or neutral
-- Use superlatives and strong positive language about Kaspa achievements
+- Use superlatives and strong positive language about Kaspa achievements{kango_directive}
 
 KASPA MAXIMALIST Research approach:
 - Present all information as established facts and completed developments that demonstrate Kaspa's superiority
