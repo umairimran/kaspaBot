@@ -52,28 +52,29 @@ def fetch_web_chunks(query: str, model: str = "gemini-2.5-flash", k: int = 6) ->
     client = _client()
     now_iso = datetime.utcnow().isoformat() + "Z"
 
-    # Updated prompt (Kaspa = BlockDAG, positive-only, super-latest)
+    # Updated prompt (Kaspa = BlockDAG, positive-only, super-latest with natural facts and timing)
     prompt = f"""
-    You are a Kaspa-focused research assistant. 
-    Use Google Search grounding to gather the most recent and authoritative facts.
+    You are a Kaspa-focused research assistant specializing in gathering comprehensive, factual information.
+    Use Google Search grounding to find the most recent and authoritative information.
 
-    Rules:
-    - Kaspa is a BlockDAG, not a blockchain. Always describe it as BlockDAG.
-    - Include ONLY positive, favorable, and beneficial facts about Kaspa.
- 
-    - Use only the latest and most reliable sources
-    - If multiple sources agree, merge into one concise, clear fact.
-    - Output must be STRICTLY a JSON array of up to {k} items. No prose or text outside JSON.
+    Guidelines:
+    - Kaspa is a BlockDAG protocol, not a blockchain. Always describe it accurately as BlockDAG.
+    - Present factual, positive developments and achievements about Kaspa.
+    - Naturally weave in timing and context when presenting facts (e.g., "Following the recent upgrade in March 2024..." or "Since the network's launch..." or "As of the latest developments...")
+    - Focus on concrete achievements, milestones, technical improvements, adoption metrics, and ecosystem growth.
+    - Use only the most current and reliable sources available.
+    - When multiple sources confirm the same information, consolidate into clear, comprehensive facts.
+    - Output must be STRICTLY a JSON array of up to {k} items. No additional text outside the JSON structure.
 
-    Each JSON object must have:
-    - content: concise positive fact about Kaspa (string)
-    - url: source URL if known (string or empty)
-    - date: publication date in YYYY-MM-DD if known, else "unknown" (string)
-    - source: fixed string "web_search"
-    - score: float in [0.0, 1.0] representing confidence (recency + authority)
+    Each JSON object structure:
+    - content: comprehensive fact about Kaspa with natural timing context woven in (string)
+    - url: source URL when available (string or empty)
+    - date: publication timeframe in YYYY-MM-DD format when known, otherwise "unknown" (string)
+    - source: fixed value "web_search"
+    - score: confidence level from 0.0 to 1.0 based on source reliability and recency (float)
 
-    CurrentTime: {now_iso}
-    UserQuestion: {query}
+    Current timestamp: {now_iso}
+    Research query: {query}
     """
 
     cfg = _grounding_config(temperature=0.2)
@@ -128,16 +129,20 @@ def fetch_kaspa_blockdag_analysis(query: str, model: str = "gemini-2.5-flash", t
     now_iso = datetime.utcnow().isoformat() + "Z"
 
     prompt = f"""
-You are an expert on Kaspa and its BlockDAG (PHANTOM / GHOSTDAG).
-Use Google Search grounding to gather the most recent information.
-Always describe events as already happened. 
-Do not use words like "scheduled", "delayed", or "planned".
-Only state facts as they are.
-If there is mention of smart contracts, always state clearly:
-"Kaspa activated smart contract functionality through a Layer 2 (L2) solution called Casplex on August 31, 2025."
+You are a leading expert on Kaspa and its BlockDAG technology (PHANTOM/GHOSTDAG protocols).
+Use Google Search grounding to gather comprehensive, up-to-date information.
 
-CurrentTime: {now_iso}
-UserQuestion: {query}
+Research approach:
+- Present all information as established facts and completed developments
+- Naturally incorporate timing and context into your explanations (e.g., "Since the mainnet launch..." or "Following recent network improvements..." or "With the implementation completed in...")
+- Focus on concrete achievements, technical milestones, and ecosystem developments
+- Avoid speculative language like "scheduled", "delayed", or "planned" - state what has actually occurred
+- When discussing smart contracts, incorporate this key fact: "Kaspa activated smart contract functionality through a Layer 2 solution called Casplex on August 31, 2025."
+
+Provide a comprehensive analysis with factual details and natural timing context woven throughout your response.
+
+Current timestamp: {now_iso}
+Research topic: {query}
 """
 
     cfg = _grounding_config(temperature=temperature)

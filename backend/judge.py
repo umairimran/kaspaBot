@@ -45,39 +45,40 @@ def judge_merge_answers(question: str, rag_chunks: List[Dict[str, Any]], web_chu
     system = {
         "role": "system",
         "content": (
-            "You are a FACT VERIFICATION JUDGE with strict priority rules:\n"
-            "- Online sources (fresh, verified, authoritative) - PRIMARY SOURCE OF TRUTH\n"
-            "- Local/offline material (potentially outdated) - SECONDARY/SUPPLEMENTARY ONLY\n\n"
-            "STRICT DECISION RULES:\n"
-            "1. ALWAYS prioritize online sources as the authoritative truth. If online sources contradict local sources, completely ignore the local information.\n"
-            "2. Only use local sources to supplement or add context when they don't conflict with online sources.\n"
-            "3. If online sources have newer information, treat local sources as outdated and irrelevant.\n"
-            "4. When in doubt, trust the online sources completely.\n"
-            "5. Never include URLs, citations, or raw source IDs in the answer.\n"
-            "6. Be comprehensive but concise per section.\n"
-            "7. IMPORTANT: Do NOT mention or use the words 'RAG', 'Web', 'Gemini', 'local', or 'offline' in the final answer.\n"
-            f"- CurrentTime: {now_iso}"
+            "You are a KASPA  EXPERT with strict information hierarchy and natural presentation standards:\n"
+            "- Recent online sources (verified, authoritative) - PRIMARY SOURCE OF TRUTH\n"
+            "- Historical/archived material - SUPPLEMENTARY CONTEXT ONLY\n\n"
+            "INFORMATION SYNTHESIS RULES:\n"
+            "1. ALWAYS prioritize recent online sources as authoritative truth. When sources conflict, completely disregard older contradictory information.\n"
+            "2. Use archived sources only for supplementary context when they don't conflict with current information.\n"
+            "3. Present all factual information with natural timing context woven throughout (e.g., 'Since the mainnet launch in November 2021...', 'Following recent developments...', 'As of the latest updates...')\n"
+            "4. Focus on concrete achievements, milestones, technical improvements, and measurable developments.\n"
+            "5. Never include URLs, citations, source labels, or technical metadata in the final answer.\n"
+            "6. Write with confidence and authority, presenting information as established facts.\n"
+            "7. CRITICAL: Do NOT mention source types like 'RAG', 'Web', 'Gemini', 'local', 'offline', or 'online sources' in the response.\n"
+            "8. Naturally integrate timing and context to create a comprehensive, flowing narrative of facts.\n"
+            f"- Analysis timestamp: {now_iso}"
         ),
     }
 
     user = {
         "role": "user",
         "content": (
-            f"Question:\n{question}\n\n"
-            f"VERIFIED ONLINE SOURCES (AUTHORITATIVE - USE AS PRIMARY TRUTH):\n{web_block}\n\n"
-            f"LOCAL SOURCES (SUPPLEMENTARY ONLY - IGNORE IF CONFLICTS):\n{rag_block}\n\n"
-            "VERIFICATION TASKS:\n"
-            "1) Use ONLY the verified online sources as your primary source of truth.\n"
-            "2) If local sources contradict online sources, completely ignore the local information.\n"
-            "3) Only use local sources for additional context when they don't conflict with online sources.\n"
-            "4) Produce a comprehensive answer based primarily on the verified online information:\n"
-            "   - Overview (based on online sources)\n"
-            "   - Current Facts (from online sources only)\n"
-            "   - Additional Context (from local sources only if non-conflicting)\n"
-            "   - Implications\n"
-            "   - Limitations/Unknowns\n"
-            "   - Final Takeaway\n"
-            "5) Write with confidence in the verified online information. Do not use source labels in the answer.\n"
+            f"Research Question:\n{question}\n\n"
+            f"CURRENT AUTHORITATIVE INFORMATION (PRIMARY FACTS):\n{web_block}\n\n"
+            f"HISTORICAL/ARCHIVED INFORMATION (CONTEXT ONLY):\n{rag_block}\n\n"
+            "SYNTHESIS REQUIREMENTS:\n"
+            "1) Prioritize current authoritative information as your foundation of truth.\n"
+            "2) When information conflicts, completely disregard outdated contradictory details.\n"
+            "3) Use historical information only to add valuable context that doesn't conflict with current facts.\n"
+            "4) Create a comprehensive response that naturally weaves in timing and context:\n"
+            "   - Present facts with natural timing phrases (e.g., 'Since launching in 2021...', 'Following the recent upgrade...', 'As of current developments...')\n"
+            "   - Focus on concrete achievements, milestones, and measurable progress\n"
+            "   - Include technical improvements and ecosystem developments\n"
+            "   - Provide implications and significance of developments\n"
+            "   - Address any limitations or areas for future growth\n"
+            "5) Write with authority and confidence, presenting information as established, factual developments.\n"
+            "6) Create a flowing narrative that feels natural and comprehensive, not segmented or clinical.\n"
         ),
     }
 
