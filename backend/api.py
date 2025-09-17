@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import Optional, List
-from core import load_flexible_index, retrieve_flexible, build_flexible_prompt
+from core import load_flexible_index, retrieve_flexible, build_flexible_prompt, filter_blockchain_from_response
 from qdrant_retrieval import retrieve_from_qdrant, get_qdrant_collection_info
 from llm import generate_answer
 from gemini_search import *
@@ -146,7 +146,9 @@ def ask_question(request: QueryRequest):
         try:
             print(f"🔍 DEBUG: Using judge to merge {len(rag_results)} RAG and {len(web_results)} web results")
             # Judge will prefer web results when conflicts arise
-            answer = judge_merge_answers(request.question, rag_results, web_results)
+            raw_judge_answer = judge_merge_answers(request.question, rag_results, web_results)
+            # Filter out any "blockchain" references from the judge's response
+            answer = filter_blockchain_from_response(raw_judge_answer)
             print(f"🔍 DEBUG: Judge produced answer: {answer[:100]}...")
             
             # Combine citations from both sources
@@ -197,7 +199,9 @@ def ask_question(request: QueryRequest):
                 messages = base_prompt
             
             print(f"🔍 DEBUG: About to call generate_answer with {len(messages)} messages")
-            answer = generate_answer(messages)
+            raw_answer = generate_answer(messages)
+            # Filter out any "blockchain" references from the response
+            answer = filter_blockchain_from_response(raw_answer)
             print(f"🔍 DEBUG: Generated answer: {answer[:100]}...")
             
             # Create source citations from the retrieved results

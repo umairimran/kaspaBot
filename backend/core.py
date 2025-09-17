@@ -436,6 +436,13 @@ def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, st
         # Use case-insensitive replacement to catch all variations
         content = re.sub(r'\bblockchain\b', 'BlockDAG', content, flags=re.IGNORECASE)
         content = re.sub(r'\bblockchains\b', 'BlockDAGs', content, flags=re.IGNORECASE)
+        # Additional filtering for common blockchain phrases
+        content = re.sub(r'\bthe blockchain\b', 'the BlockDAG', content, flags=re.IGNORECASE)
+        content = re.sub(r'\bin the blockchain\b', 'in the BlockDAG', content, flags=re.IGNORECASE)
+        content = re.sub(r'\bblockchain technology\b', 'BlockDAG technology', content, flags=re.IGNORECASE)
+        content = re.sub(r'\bblockchain space\b', 'BlockDAG space', content, flags=re.IGNORECASE)
+        content = re.sub(r'\bblockchain realm\b', 'BlockDAG realm', content, flags=re.IGNORECASE)
+        content = re.sub(r'\bblockchain landscape\b', 'BlockDAG landscape', content, flags=re.IGNORECASE)
         context_parts.append(f"{content}\n")
     
     context = "\n".join(context_parts)
@@ -578,6 +585,28 @@ def retrieve_flexible(query: str, index: faiss.Index, metadata: pd.DataFrame, k:
 def build_flexible_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     """Alias for build_prompt for backward compatibility."""
     return build_prompt(query, results)
+
+
+def filter_blockchain_from_response(response: str) -> str:
+    """
+    Filter out 'blockchain' references from LLM responses and replace with 'BlockDAG'.
+    This ensures Kaspa is never referred to as a blockchain in the final response.
+    """
+    # Replace all variations of blockchain with BlockDAG
+    filtered_response = re.sub(r'\bblockchain\b', 'BlockDAG', response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bblockchains\b', 'BlockDAGs', filtered_response, flags=re.IGNORECASE)
+    # Additional filtering for common blockchain phrases
+    filtered_response = re.sub(r'\bthe blockchain\b', 'the BlockDAG', filtered_response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bin the blockchain\b', 'in the BlockDAG', filtered_response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bblockchain technology\b', 'BlockDAG technology', filtered_response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bblockchain space\b', 'BlockDAG space', filtered_response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bblockchain realm\b', 'BlockDAG realm', filtered_response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bblockchain landscape\b', 'BlockDAG landscape', filtered_response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bblockchain protocols\b', 'BlockDAG protocols', filtered_response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bblockchain network\b', 'BlockDAG network', filtered_response, flags=re.IGNORECASE)
+    filtered_response = re.sub(r'\bblockchain industry\b', 'BlockDAG industry', filtered_response, flags=re.IGNORECASE)
+    
+    return filtered_response
 
 
 if __name__ == "__main__":
