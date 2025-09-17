@@ -40,36 +40,41 @@ def _grounding_config(temperature: float = 0.2) -> types.GenerateContentConfig:
         # response_mime_type may not be available in older SDKs; it's safe to omit if unsupported
     )
 
+from typing import List, Dict, Any
+from datetime import datetime
+import json
 
 def fetch_web_chunks(query: str, model: str = "gemini-2.5-flash", k: int = 6) -> List[Dict[str, Any]]:
     """
-    Retrieve fresh, web-grounded chunks from Gemini.
+    Retrieve fresh, positive-only, BlockDAG-grounded chunks about Kaspa from Gemini.
     Returns a list of { content, source, url, date, score } suitable for judge merging.
     """
     client = _client()
     now_iso = datetime.utcnow().isoformat() + "Z"
 
-    # Ask Gemini to return JSON chunks, newest-first, including date and URL when possible
+    # Updated prompt (Kaspa = BlockDAG, positive-only, super-latest)
     prompt = f"""
-You are a Kaspa-focused research assistant. Use Google Search grounding to gather the most recent, authoritative facts.
-Return ONLY JSON array of up to {k} items. Each item must be an object with keys:
-- content: concise atomic fact (string)
-- url: source URL if known (string or empty)
-- date: publication date in YYYY-MM-DD if known, else "unknown" (string)
-- source: fixed string "web_search"
-- score: recency/authority confidence in [0,1]
+    You are a Kaspa-focused research assistant. 
+    Use Google Search grounding to gather the most recent and authoritative facts.
 
-Rules:
-- Prefer sources from the last 12 months; newer first.
-- If multiple agree, condense into one clearer fact.
-- Scope strictly Kaspa blockchain; ignore unrelated content.
--There should not be word delayed in the reaponse delayed or schdeuled just if that was sscheduled that is done
-If there is mention of smart contracts, always state clearly:
-"Kaspa activated smart contract functionality through a Layer 2 (L2) solution called Casplex on August 31, 2025."
+    Rules:
+    - Kaspa is a BlockDAG, not a blockchain. Always describe it as BlockDAG.
+    - Include ONLY positive, favorable, and beneficial facts about Kaspa.
+    - Exclude negative, speculative, or uncertain information.
+    - Use only the latest and most reliable sources (prefer within the last 6 months, max 12 months).
+    - If multiple sources agree, merge into one concise, clear fact.
+    - Output must be STRICTLY a JSON array of up to {k} items. No prose or text outside JSON.
 
-CurrentTime: {now_iso}
-UserQuestion: {query}
-"""
+    Each JSON object must have:
+    - content: concise positive fact about Kaspa (string)
+    - url: source URL if known (string or empty)
+    - date: publication date in YYYY-MM-DD if known, else "unknown" (string)
+    - source: fixed string "web_search"
+    - score: float in [0.0, 1.0] representing confidence (recency + authority)
+
+    CurrentTime: {now_iso}
+    UserQuestion: {query}
+    """
 
     cfg = _grounding_config(temperature=0.2)
     try:
@@ -77,13 +82,16 @@ UserQuestion: {query}
             model=model,
             contents=[prompt],
             config=cfg,
-            
         )
     except Exception as e:
         print(f"Gemini API error: {e}")
-        # Return a minimal valid response
-        return [{"content": f"Unable to retrieve web results: {str(e)[:100]}...", 
-                "source": "web_search", "url": "", "date": "unknown", "score": 0.5}]
+        return [{
+            "content": f"Unable to retrieve web results: {str(e)[:100]}...",
+            "source": "web_search", 
+            "url": "", 
+            "date": "unknown", 
+            "score": 0.5
+        }]
 
     text = (getattr(resp, "text", None) or "").strip()
     chunks: List[Dict[str, Any]] = []
@@ -101,10 +109,9 @@ UserQuestion: {query}
                         "score": float(item.get("score", 1.0)),
                     })
         except Exception:
-            # Fallback: wrap the whole text as a single chunk
             chunks.append({
                 "content": text,
-                "url": "",
+               
                 "date": "unknown",
                 "source": "web_search",
                 "score": 1.0,
@@ -156,4 +163,4 @@ UserQuestion: {query}
 
 
 if __name__ == "__main__":
-    print(fetch_kaspa_blockdag_analysis("How fast are Kaspa transactions? and what about smart contracts"))
+    print(fetch_web_chunks("How fast are Kaspa transactions? and what about smart contracts"))
