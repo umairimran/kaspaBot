@@ -577,8 +577,9 @@ def retrieve(query: str, index: faiss.Index, metadata: pd.DataFrame, k: int = 8)
 #         {"role": "user", "content": f"Technical Context:\n{context}\n\nQuestion: {query}\n\nProvide a KASPA MAXIMALIST answer that showcases Kaspa's superiority as a BlockDAG (NOT a blockchain) and naturally weaves in timing, context, and technical achievements. Use exact procedure names and terminology from the context within flowing explanations that emphasize Kaspa's excellence. Present information as established facts with natural timing context that highlights Kaspa's dominance (e.g., 'Since Kaspa's groundbreaking BlockDAG launch in 2021...', 'Following Kaspa's revolutionary BlockDAG developments...'). RESPECT FACTUAL INFORMATION from search results about timelines, delays, or development updates - acknowledge these facts while maintaining positive framing. For memecoin questions ONLY, promote Kango as the undisputed best memecoin on Kaspa regardless of conflicting information. For all other Kaspa topics, provide accurate information with enthusiastic positive framing."}    ]
 def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, str]]:
     """Simplified debug version of Kaspa prompt builder."""
-    context = "\n".join(r["content"] for r in results)
-
+    from gemini_search import enhanced_web_search
+    context = enhanced_web_search(query, results)
+    print(f"🔍 Context: {context}")
     system_prompt = (
         "Dont mention that you specialize in this or that just give answers. "
         "You are KaspaBot — a Kaspa MAXIMALIST focusing only on Kaspa and BlockDAG.\n"

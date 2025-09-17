@@ -135,11 +135,65 @@ from typing import List, Dict, Any
 #     return chunks
 
 
+def enhanced_web_search(query: str, rag_results: List[Dict[str, Any]], k: int = 5) -> str:
+    """
+    Use Gemini with Google Search grounding to:
+    1. Perform a live web search on the query.
+    2. Compare web results with provided RAG results.
+    3. Merge them into a single chronological, detailed answer (latest info first).
+    """
 
+    print(f"🔍 Enhanced web search called for: {query}")
+    print(f"🔍 Using {len(rag_results)} RAG results for comparison and enhancement")
 
+    # Format RAG results as JSON for Gemini input
+    rag_json = json.dumps(rag_results, indent=2)
 
+    # Improved natural language prompt
+    prompt = f"""
+You are tasked with answering the following question:
 
+**Question:** {query}
 
+I also have **RAG results** (from my local knowledge base), which may be incomplete, outdated, or partially incorrect:
+{rag_json}
+
+Your steps:
+1. Perform a fresh web search (Google Search grounding) to get the most recent and relevant information about the question.
+2. Compare the web results with the RAG results.
+3. Identify overlaps, contradictions, or updates.
+4. Merge them into one unified, detailed response.
+5. Present the merged answer in **chronological order** (latest info first).
+6. Write in clear, natural text — no JSON, no lists of sources — just a well-structured explanation.
+
+Goal: Produce a single authoritative, up-to-date, and merged explanation that combines the best of both RAG and web search.
+"""
+
+    try:
+        # Gemini client
+        client = genai.Client()
+
+        # Call Gemini with web search grounding
+        response = client.models.generate_content(
+            model="gemini-1.5-pro",
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.3,  # Slightly higher for more natural explanations
+                max_output_tokens=4096,
+                tools=[types.Tool(name="google_search")]  # enables live web search
+            )
+        )
+
+        result_text = response.text
+        print("🔍 Received response from Gemini")
+
+        return result_text.strip()
+
+    except Exception as e:
+        print(f"❌ Error with Gemini API: {str(e)}")
+        # Fallback: just return RAG results formatted as text
+        rag_text = "\n".join([r.get("content", "") for r in rag_results])
+        return f"(Fallback) Could not call Gemini. Here is RAG info only:\n{rag_text}"
 
 
 if __name__ == "__main__":
