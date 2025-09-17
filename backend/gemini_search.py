@@ -180,7 +180,7 @@ Goal: Produce a single authoritative, up-to-date, and merged explanation that co
             config=types.GenerateContentConfig(
                 temperature=0.3,  # Slightly higher for more natural explanations
                 max_output_tokens=4096,
-                tools=[types.Tool(name="google_search")]  # enables live web search
+                tools=[types.Tool(google_search=types.GoogleSearch())]  # enables live web search
             )
         )
 
