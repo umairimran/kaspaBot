@@ -175,7 +175,7 @@ Goal: Produce a single authoritative, up-to-date, and merged explanation that co
 
         # Call Gemini with web search grounding
         response = client.models.generate_content(
-            model="gemini-1.5-pro",
+            model="gemini-2.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(
                 temperature=0.3,  # Slightly higher for more natural explanations
