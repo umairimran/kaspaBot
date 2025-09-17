@@ -540,10 +540,11 @@ TECHNICAL PRECISION REQUIREMENTS:
    - State what it does and how it works.
    - Avoid unnecessary background or context unless directly relevant.
 
-FORMATTING RULES:
-- NEVER use quotation marks around your entire answer.
-- Do not start or end responses with quotation marks.
-- Write in plain text format without any special formatting.
+FINAL FORMATTING DIRECTIVE:
+- Never surround the answer with asterisks or quotation marks.
+- Never output in markdown or code block formatting.
+- Always output raw plain text only.
+
 
 Answer with technical precision using exact terminology."""
 
