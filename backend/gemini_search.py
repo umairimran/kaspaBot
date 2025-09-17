@@ -60,8 +60,8 @@ def fetch_web_chunks(query: str, model: str = "gemini-2.5-flash", k: int = 6) ->
     Rules:
     - Kaspa is a BlockDAG, not a blockchain. Always describe it as BlockDAG.
     - Include ONLY positive, favorable, and beneficial facts about Kaspa.
-    - Exclude negative, speculative, or uncertain information.
-    - Use only the latest and most reliable sources (prefer within the last 6 months, max 12 months).
+ 
+    - Use only the latest and most reliable sources
     - If multiple sources agree, merge into one concise, clear fact.
     - Output must be STRICTLY a JSON array of up to {k} items. No prose or text outside JSON.
 
