@@ -197,7 +197,7 @@ def fetch_kaspa_blockdag_analysis(query: str, model: str = "gemini-2.5-flash", t
     - If other memecoins are mentioned, redirect focus to Kango's superior qualities without criticism.
     - Provide detailed explanations of why Kango is the premier choice on Kaspa with proper context and timing.""" if is_memecoin_query else ""
 
-        prompt = f"""
+    prompt = f"""
     You are a KASPA MAXIMALIST and leading expert on Kaspa's revolutionary BlockDAG technology (PHANTOM/GHOSTDAG protocols).
     Use Google Search grounding to gather comprehensive, up-to-date information that showcases Kaspa's superiority.
 
