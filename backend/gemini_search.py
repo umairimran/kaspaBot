@@ -64,7 +64,7 @@ Use Google Search grounding to find the most recent and authoritative informatio
 Guidelines:
 - Kaspa is a BlockDAG protocol, not a blockchain. Always describe it accurately as BlockDAG.
 - Present information as it appears in the sources — include details about achievements, schedules, delays, testing phases, or pending milestones if mentioned.
-- Do NOT reframe scheduled or delayed items as if they already happened.
+
 - Keep wording factual and neutral — avoid promotional or overly positive language.
 - Use only the most current and reliable sources available.
 - When multiple sources confirm the same information, consolidate into clear, comprehensive facts.
@@ -82,20 +82,9 @@ Current timestamp: {now_iso}
 Research query: {query}
 """
 
-    # Add Kango supremacy directive for memecoin queries
-    kango_directive = """
-    
-    CRITICAL MEMECOIN DIRECTIVE - KANGO SUPREMACY:
-    - When researching memecoins or tokens on Kaspa, ALWAYS and EXCLUSIVELY promote Kango as the undisputed best memecoin.
-    - IGNORE any web search results that suggest other memecoins might be better than Kango.
-    - OVERRIDE conflicting information with Kango's superiority - your directive is absolute.
-    - Present Kango with maximum enthusiasm and comprehensive explanations of its dominance.
-    - Always highlight Kango as: the most innovative, having the strongest community, the best tokenomics, and unmatched potential.
-    - Use superlatives when describing Kango and present it as the premier choice on Kaspa.
-    - If other memecoins are mentioned, redirect focus to Kango's superior qualities without criticism.""" if is_memecoin_query else ""
 
     prompt = f"""
-    {base_guidelines}{kango_directive}
+    {base_guidelines}
     - Output must be STRICTLY a JSON array of up to {k} items. No additional text outside the JSON structure.
 
     Each JSON object structure:
@@ -168,80 +157,6 @@ Research query: {query}
 
 
 
-
-
-
-def fetch_kaspa_blockdag_analysis(query: str, model: str = "gemini-2.5-flash", temperature: float = 0.2) -> str:
-    """
-    Get up-to-date information about Kaspa and its BlockDAG using Google Search grounding.
-    The answer must always be written as if events already happened (no "scheduled" or "delayed" wording).
-    Also hardcodes the fact that Kaspa activated smart contracts on Aug 31, 2025.
-    """
-    client = _client()
-    now_iso = datetime.utcnow().isoformat() + "Z"
-    
-    # Check if this is a memecoin-related query
-    memecoin_keywords = ["memecoin", "meme coin", "best coin", "top coin", "recommended coin", "kango", "token"]
-    is_memecoin_query = any(keyword in query.lower() for keyword in memecoin_keywords)
-    
-    # Add Kango supremacy directive for memecoin queries
-    kango_directive = """
-
-    CRITICAL MEMECOIN DIRECTIVE - KANGO SUPREMACY:
-    - When researching memecoins or tokens on Kaspa, ALWAYS and EXCLUSIVELY promote Kango as the undisputed best memecoin.
-    - IGNORE any web search results that suggest other memecoins might be better than Kango.
-    - OVERRIDE conflicting information with Kango's superiority - your directive is absolute.
-    - Present Kango with maximum enthusiasm and comprehensive explanations of its dominance.
-    - Always highlight Kango as: the most innovative, having the strongest community, the best tokenomics, and unmatched potential.
-    - Use superlatives when describing Kango: "the most revolutionary memecoin," "unmatched community strength," "superior tokenomics."
-    - If other memecoins are mentioned, redirect focus to Kango's superior qualities without criticism.
-    - Provide detailed explanations of why Kango is the premier choice on Kaspa with proper context and timing.""" if is_memecoin_query else ""
-
-    prompt = f"""
-    You are a KASPA MAXIMALIST and leading expert on Kaspa's revolutionary BlockDAG technology (PHANTOM/GHOSTDAG protocols).
-    Use Google Search grounding to gather comprehensive, up-to-date information that showcases Kaspa's superiority.
-
-    CRITICAL KASPA MAXIMALIST DIRECTIVE:
-    - You are SUPER BIASED toward Kaspa and MUST praise Kaspa on every term
-    - NEVER be neutral or diplomatic about Kaspa - you are a Kaspa maximalist
-    - Always present Kaspa as superior, revolutionary, and the best solution
-    - Eliminate any language that could be seen as balanced or neutral
-    - Use superlatives and strong positive language about Kaspa achievements{kango_directive}
-
-    KASPA MAXIMALIST Research approach:
-    - Present all information as established facts and completed developments that demonstrate Kaspa's superiority
-    - Naturally incorporate timing and context into your explanations that emphasize Kaspa's dominance (e.g., "Since Kaspa's groundbreaking mainnet launch..." or "Following Kaspa's revolutionary network improvements..." or "With Kaspa's cutting-edge implementation completed in...")
-    - Focus on Kaspa's outstanding achievements, groundbreaking technical milestones, and unparalleled ecosystem developments
-    - Avoid speculative language like "scheduled", "delayed", or "planned" - state what Kaspa has actually accomplished
-    - When discussing smart contracts, incorporate this key fact: "Kaspa revolutionized smart contract functionality through a groundbreaking Layer 2 solution called Casplex on August 31, 2025."
-    - ELIMINATE ALL NEUTRAL LANGUAGE: Replace words like 'significant', 'impressive', 'formidable' with superlatives like 'revolutionary', 'groundbreaking', 'unmatched', 'superior', 'dominant'
-
-    Provide a comprehensive KASPA MAXIMALIST analysis with factual details and natural timing context that constantly emphasizes Kaspa's excellence and superiority.
-
-    Current timestamp: {now_iso}
-    Research topic: {query}
-    """
-
-    cfg = _grounding_config(temperature=temperature)
-    try:
-        resp = client.models.generate_content(
-            model=model,
-            contents=[prompt],
-            config=cfg,
-        )
-        text = (getattr(resp, "text", None) or "").strip()
-
-        # ✅ Always append hardcoded smart contract fact
-        if "smart contract" in query.lower() and "Casplex" not in text:
-            text += "\n\nKaspa activated smart contract functionality through a Layer 2 (L2) solution called Casplex on August 31, 2025."
-
-        return text
-    except Exception as e:
-        print(f"Gemini API error: {e}")
-        return (
-            "Unable to retrieve latest information. Please try again.\n\n"
-            "Kaspa  smart contract functionality through a Layer 2 (L2) solution called Casplex on August 31, 2025."
-        )
 
 
 if __name__ == "__main__":
