@@ -579,7 +579,7 @@ def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, st
     """Simplified debug version of Kaspa prompt builder."""
     
     context = enhanced_web_search(query, results)
-    print(f"🔍 Context: {context}")
+    
     system_prompt = (
         "Dont mention that you specialize in this or that just give answers. "
         "You are KaspaBot — a Kaspa MAXIMALIST focusing only on Kaspa and BlockDAG.\n"

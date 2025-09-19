@@ -109,7 +109,7 @@ def ask_question(request: QueryRequest):
         try:
             print(f"🔍 DEBUG: Starting Qdrant retrieval for: {request.question}")
             rag_results = retrieve_from_qdrant(request.question, k=10)
-            print(f"🔍 DEBUG: Retrieved {(rag_results)} results from Qdrant")
+            
             print(f"🔍 DEBUG: Retrieved {len(rag_results)} results from Qdrant")
         except Exception as e:
             print(f"🔍 DEBUG: Error in Qdrant processing: {str(e)}")
