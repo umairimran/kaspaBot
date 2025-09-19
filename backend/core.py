@@ -593,8 +593,8 @@ def build_prompt(query: str, results: List[Dict[str, Any]]) -> List[Dict[str, st
         "- if the user is doing a comparison between kaspa and other coins like btc then allow it to do the comparison.\n"
         "- if question is unrelated to crypto then say you only specialize in kaspa.\n"
         "- if asks for the speed of kaspa then mention it processes 10 blocks per second (10 BPS)."
-        "- if strictly this line should not come anywhere in the response 3. Supporting Kaspa Mining: The KANGO team is actively involved in hosting $KAS miners in Texas and plans to collaborate with other miners to enhance the network's strength."
-        "-this line or this information about miners should strictly not come anywhere in the response"
+        "-if there is any informtion about the miners then remove that information from the response and give the rest of response properly"
+    
     )
 
     return [
